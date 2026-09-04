@@ -32,6 +32,17 @@ Page {
         cleanupEstimates = estimates
     }
 
+    function ruleName(id) {
+        return page.ruleI18n[id] || id
+    }
+
+    // Translated rule names, keyed by id (retranslate-safe property).
+    readonly property var ruleI18n: ({
+        "user-trash": qsTr("Trash"),
+        "apt-cache": qsTr("APT package cache"),
+        "thumbnail-cache": qsTr("Thumbnail cache")
+    })
+
     Component.onCompleted: refreshEstimates()
 
     ColumnLayout {
@@ -136,7 +147,7 @@ Page {
                                     for (let i = 0; i < rules.length; ++i) {
                                         const est = page.cleanupEstimates[rules[i].id]
                                         out.push({
-                                            name: rules[i].name,
+                                            name: page.ruleName(rules[i].id),
                                             bytes: est ? est.bytes : 0
                                         })
                                     }

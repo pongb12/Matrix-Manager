@@ -432,7 +432,10 @@ Page {
                         ListView {
                             id: resultList
                             Layout.fillWidth: true
-                            Layout.preferredHeight: Math.min(420, Math.max(count * 34, 60))
+                            // Tall enough for the empty state when idle;
+                            // compact while showing results.
+                            Layout.preferredHeight: count === 0 ? 190
+                                : Math.min(420, Math.max(count * 34, 60))
                             model: page.entries
                             clip: true
                             spacing: 0

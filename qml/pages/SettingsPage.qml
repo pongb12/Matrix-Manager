@@ -87,6 +87,31 @@ Page {
                                 onActivated: (index) => SettingsService.theme = index
                             }
                         }
+
+                        RowLayout {
+                            spacing: Theme.spacingMD
+
+                            Text {
+                                text: qsTr("Language")
+                                font.pixelSize: Theme.fontSizeMD
+                                color: Theme.textSecondary
+                                Layout.preferredWidth: 240
+                            }
+                            MSegmented {
+                                id: languageSelector
+                                model: [qsTr("Tiếng Việt"), qsTr("English")]
+                                currentIndex: SettingsService.language === "en" ? 1 : 0
+                                onActivated: (index) =>
+                                    SettingsService.language = (index === 1 ? "en" : "vi")
+                            }
+                        }
+                        Text {
+                            text: qsTr("Interface language changes apply immediately.")
+                            font.pixelSize: Theme.fontSizeXS
+                            color: Theme.textMuted
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
                     }
                 }
 

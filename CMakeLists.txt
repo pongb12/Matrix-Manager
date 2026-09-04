@@ -27,6 +27,7 @@ qt_add_executable(matrix-manager
     src/core/SizeUtils.cpp
     src/core/SystemInfo.cpp
     src/core/SettingsService.cpp
+    src/core/TranslationService.cpp
     src/core/ActivityLog.cpp
     src/platform/linux/ProcessRunner.cpp
     src/filesystem/FileWalker.cpp
@@ -45,6 +46,7 @@ add_library(matrix_core STATIC
     src/core/SizeUtils.cpp
     src/core/SystemInfo.cpp
     src/core/SettingsService.cpp
+    src/core/TranslationService.cpp
     src/core/ActivityLog.cpp
     src/platform/linux/ProcessRunner.cpp
     src/filesystem/FileWalker.cpp
@@ -188,6 +190,14 @@ qt_add_resources(matrix-manager "appicon"
     PREFIX "/"
     FILES
         resources/matrix-manager.svg
+)
+
+# Compiled Vietnamese translation (generated from translations/
+# matrix-manager_vi.ts with lrelease; see README "Translations").
+qt_add_resources(matrix-manager "translations"
+    PREFIX "/"
+    FILES
+        translations/matrix-manager_vi.qm
 )
 
 # ---------------------------------------------------------------------------

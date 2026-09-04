@@ -13,6 +13,7 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QString>
 
 class SettingsService : public QObject
 {
@@ -29,6 +30,8 @@ class SettingsService : public QObject
                WRITE setFollowSymlinks NOTIFY followSymlinksChanged)
     Q_PROPERTY(bool crossFilesystems READ crossFilesystems
                WRITE setCrossFilesystems NOTIFY crossFilesystemsChanged)
+    // UI language code: "vi" (default) or "en"
+    Q_PROPERTY(QString language READ language WRITE setLanguage NOTIFY languageChanged)
 
 public:
     static SettingsService *instance();
@@ -50,6 +53,9 @@ public:
     bool crossFilesystems() const { return m_crossFilesystems; }
     void setCrossFilesystems(bool value);
 
+    QString language() const { return m_language; }
+    void setLanguage(const QString &code);
+
     // Re-evaluate the system color scheme (called when the desktop theme
     // changes at runtime, on Qt >= 6.5; on older Qt this happens at startup).
     Q_INVOKABLE void refreshEffectiveTheme();
@@ -61,6 +67,7 @@ signals:
     void confirmDestructiveChanged();
     void followSymlinksChanged();
     void crossFilesystemsChanged();
+    void languageChanged();
 
 private:
     explicit SettingsService(QObject *parent = nullptr);
@@ -72,4 +79,5 @@ private:
     bool m_confirmDestructive = true;
     bool m_followSymlinks = false;
     bool m_crossFilesystems = false;
+    QString m_language = QStringLiteral("vi");
 };

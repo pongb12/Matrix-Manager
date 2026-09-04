@@ -31,6 +31,12 @@ SettingsService::SettingsService(QObject *parent)
     m_crossFilesystems = m_settings
         .value(QStringLiteral("scanner/crossFilesystems"), false).toBool();
 
+    QString lang = m_settings.value(QStringLiteral("ui/language"),
+                                    QStringLiteral("vi")).toString();
+    if (lang != QLatin1String("vi") && lang != QLatin1String("en"))
+        lang = QStringLiteral("vi");
+    m_language = lang;
+
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
     // Follow live desktop theme changes where Qt can report them.
     connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged,
@@ -104,6 +110,16 @@ void SettingsService::setCrossFilesystems(bool value)
     m_crossFilesystems = value;
     m_settings.setValue(QStringLiteral("scanner/crossFilesystems"), value);
     emit crossFilesystemsChanged();
+}
+
+void SettingsService::setLanguage(const QString &code)
+{
+    if ((code != QLatin1String("vi") && code != QLatin1String("en"))
+            || code == m_language)
+        return;
+    m_language = code;
+    m_settings.setValue(QStringLiteral("ui/language"), m_language);
+    emit languageChanged();
 }
 
 void SettingsService::refreshEffectiveTheme()

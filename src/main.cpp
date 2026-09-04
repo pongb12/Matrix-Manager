@@ -8,6 +8,7 @@
 #include "core/ActivityLog.h"
 #include "core/SettingsService.h"
 #include "core/SystemInfo.h"
+#include "core/TranslationService.h"
 #include "filesystem/LargeFileService.h"
 #include "filesystem/StorageService.h"
 #include "filesystem/DirectoryScanner.h"
@@ -67,12 +68,22 @@ int main(int argc, char *argv[])
                                  "ActivityLog", ActivityLog::instance());
     qmlRegisterSingletonInstance("MatrixManager.Core", 1, 0,
                                  "SystemInfo", new SystemInfo(&app));
+    qmlRegisterSingletonInstance("MatrixManager.Core", 1, 0,
+                                 "TranslationService", TranslationService::instance());
     qmlRegisterType<DirectoryScanner>("MatrixManager.Core", 1, 0,
                                       "DirectoryScanner");
 
     QQmlApplicationEngine engine;
     // QML modules share RESOURCE_PREFIX /qml (see CMakeLists.txt).
     engine.addImportPath(QStringLiteral("qrc:/qml"));
+
+    // Vietnamese is the default interface language (MM-1xx, user request).
+    // Install the translator before the engine loads so the first frame is
+    // already in the selected language; live switches retranslate below.
+    TranslationService::instance()->applyStartupLanguage();
+    QObject::connect(TranslationService::instance(), &TranslationService::languageChanged,
+                     &engine, &QQmlApplicationEngine::retranslate,
+                     Qt::QueuedConnection);
 
     // QA support: MM_QA_SCAN=<path> auto-starts a storage scan so that
     // automated UI checks can exercise the results table. Unset normally.

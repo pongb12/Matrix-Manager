@@ -72,6 +72,10 @@ ColumnLayout {
             font.pixelSize: Theme.fontSizeSM
             color: Theme.textMuted
             horizontalAlignment: Text.AlignRight
+            // Cap the right legend so the left one keeps usable space with
+            // longer (translated) strings; both elide gracefully.
+            Layout.maximumWidth: usageBar.width * 0.62
+            elide: Text.ElideRight
         }
     }
 }
