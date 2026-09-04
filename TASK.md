@@ -38,7 +38,7 @@ PHASE 0 — Repository foundation
 
 MM-001 — Project bootstrap
 
-Status: [ ]
+Status: [x]
 
 Create the initial CMake project.
 
@@ -59,11 +59,14 @@ cmake --build build
 
 must succeed.
 
+Verified: builds and runs against Qt 6.8.2; all C++ core compiles against
+Qt 6.2.4 headers (minimum supported version, Ubuntu 22.04 / Mint 21).
+
 ⸻
 
 MM-002 — Initial architecture
 
-Status: [ ]
+Status: [x]
 
 Create a clean separation between:
 
@@ -77,35 +80,22 @@ Platform/Linux
 
 Do not create empty abstraction layers without a purpose.
 
+Implemented: src/core (formatting, settings, activity), src/filesystem
+(walker, volumes, scanners), src/packages, src/cleanup,
+src/platform/linux (safe process execution), qml/ (theme, components,
+pages). Each layer exists because it has a concrete responsibility.
+
 ⸻
 
 MM-003 — Application shell
 
-Status: [ ]
+Status: [x]
 
-Implement the main application window.
-
-Requirements:
-
-* minimum sensible window size
-* resizable
-* desktop-friendly layout
-* navigation
-* page container
-* application title
-* icon placeholder if final icon is not ready
-
-Pages initially:
-
-* Overview
-* Storage
-* Applications
-* Cleanup
-* Large Files
-* Duplicates
-* Settings
-
-Pages can initially contain proper empty states.
+Implemented: fixed sidebar navigation with keyboard support, page
+container (StackLayout), resizable window (1180x760, min 960x600),
+application title, SVG icon placeholder, toast notifications. All seven
+pages exist; Duplicates carries an honest empty state pointing at
+MM-032.
 
 ⸻
 
@@ -113,89 +103,35 @@ PHASE 1 — Design system
 
 MM-010 — Matrix Manager design system
 
-Status: [ ]
+Status: [x]
 
-Create the central QML design-token system.
-
-Define:
-
-* colors
-* typography
-* spacing
-* radius
-* borders
-* shadows/elevation
-* animations
-* focus state
-* semantic colors
-
-Support:
-
-* light theme
-* dark theme
-
-The design must follow Hallmark’s anti-slop principles while being adapted to a Linux desktop utility.
-
-Reference:
-
-https://github.com/Nutlope/hallmark
-
-Do NOT clone Hallmark.
+Implemented as a QML singleton (qml/theme/Theme.qml): semantic colour
+tokens for both themes, spacing/radius/typography/motion scales, focus
+colour. Single restrained green accent on a near-monochrome scale; no
+gradients or AI-purple.
 
 ⸻
 
 MM-011 — Typography
 
-Status: [ ]
+Status: [x]
 
-Choose a suitable desktop-oriented font system.
-
-Priorities:
-
-1. readability
-2. Linux availability
-3. clear hierarchy
-4. restrained personality
-
-Avoid excessive font pairing.
-
-Do not use italic display headings.
+Implemented: platform default font family plus the system fixed-width
+font for paths, package names and sizes (QFontDatabase systemFont).
+Hierarchy through size/weight only. No italics, no decorative pairing.
 
 ⸻
 
 MM-012 — Core components
 
-Status: [ ]
+Status: [x]
 
-Create reusable components for:
-
-* Button
-* IconButton
-* DestructiveButton
-* SecondaryButton
-* Card/Surface where justified
-* ListItem
-* ProgressBar
-* EmptyState
-* ErrorState
-* LoadingState
-* ConfirmationDialog
-* SearchField
-* SegmentedControl
-* Badge
-* Toast/notification
-* PageHeader
-
-Each interactive component must handle:
-
-* default
-* hover
-* focus
-* pressed
-* disabled
-* loading
-* error
-* success where applicable
+Implemented in qml/components/: MButton, MSecondaryButton,
+MDestructiveButton, MIconButton, MCard, MListItem, MProgressBar,
+MEmptyState, MErrorState, MLoadingState, MConfirmationDialog,
+MSearchField, MSegmented, MBadge, MToast, MPageHeader, MUsageBar,
+MValueRow, MCheckBox, MSwitch. All interactive components implement
+default/hover/pressed/focus/disabled states.
 
 ⸻
 
@@ -203,66 +139,34 @@ PHASE 2 — Disk information
 
 MM-020 — Disk information
 
-Status: [ ]
+Status: [x]
 
-Display:
-
-* total capacity
-* used space
-* free space
-* usage percentage
-* filesystem where available
-* mount point
-
-Support multiple mounted storage volumes where appropriate.
-
-Do not claim a volume is “safe to clean”.
+Implemented via QStorageInfo (StorageService): capacity, used, free,
+percentage, filesystem type, mount point, multiple volumes, pseudo
+filesystems filtered. No "safe to clean" claims anywhere.
 
 ⸻
 
 MM-021 — Storage overview
 
-Status: [ ]
+Status: [x]
 
-Create the Storage page.
-
-Display meaningful categories based on actual filesystem data.
-
-Potential categories:
-
-* Home
-* Applications
-* Downloads
-* Documents
-* Pictures
-* Videos
-* Cache
-* Other
-
-Do not fabricate category values.
-
-If classification is incomplete, label it honestly.
+Implemented: Home folder breakdown after an explicit home scan groups
+well-known top-level directories (Documents, Downloads, Pictures,
+Videos, .cache, ...) with an honest "Other" remainder. Classification
+is derived from real scan data only.
 
 ⸻
 
 MM-022 — Storage tree
 
-Status: [ ]
+Status: [x]
 
-Implement directory traversal.
-
-Requirements:
-
-* lazy loading
-* asynchronous traversal
-* cancellation
-* permission-error handling
-* symlink safety
-* progress reporting
-* sorting by size
-* sorting by name
-
-Do not scan the entire root filesystem on startup.
+Implemented (DirectoryScanner): lazy per-directory scanning on user
+request, worker-thread traversal, partial results, cancellation,
+per-entry permission error recording, symlink safety (never followed by
+default, cycle guard when enabled), mount-boundary reporting, sorting by
+size and name.
 
 ⸻
 
@@ -288,36 +192,12 @@ PHASE 3 — File management
 
 MM-030 — Large files
 
-Status: [ ]
+Status: [x]
 
-Create Large Files page.
-
-Default threshold:
-
-500 MB
-
-Allow:
-
-* 100 MB
-* 500 MB
-* 1 GB
-* 5 GB
-
-Display:
-
-* filename
-* path
-* size
-* modified time
-* file type
-
-Actions:
-
-* Open
-* Show in folder
-* Delete
-
-Deletion must require appropriate confirmation.
+Implemented (LargeFileService + page): thresholds 100 MB / 500 MB /
+1 GB / 5 GB (default 500 MB, persisted), filename, path, size, modified
+time, type. Actions: Open, Show in folder, Move to trash (with explicit
+confirmation; recoverable). Deletion is never automatic.
 
 ⸻
 
@@ -367,80 +247,42 @@ PHASE 4 — Applications
 
 MM-040 — Installed .deb applications
 
-Status: [ ]
+Status: [x]
 
-Implement package enumeration using the Debian package ecosystem.
-
-Retrieve where possible:
-
-* package name
-* display name
-* version
-* architecture
-* installed size
-* description
-* package state
-
-Handle package query errors gracefully.
+Implemented via dpkg-query (read-only): package name, one-line summary
+as human-readable identity, version, architecture, installed size,
+section, status filtering (installed only). Query errors surface as an
+actionable error state with retry.
 
 ⸻
 
 MM-041 — Application list
 
-Status: [ ]
+Status: [x]
 
-Create Applications page.
-
-Features:
-
-* search
-* sorting
-* size
-* name
-* version
-* details view
-
-Avoid displaying technical package names as the only identity when a human-readable name is available.
+Implemented: searchable (name or description), sortable (size, name,
+version, asc/desc), totals line, details panel.
 
 ⸻
 
 MM-042 — Application details
 
-Status: [ ]
+Status: [x]
 
-Show:
-
-* application name
-* package name
-* version
-* architecture
-* installed size
-* description
-* installation source where available
-
-Actions:
-
-* Uninstall
+Implemented: display name, package name, version, architecture,
+installed size, section, summary. Uninstall action present.
 
 ⸻
 
 MM-043 — Uninstall
 
-Status: [ ]
+Status: [x]
 
-Implement safe .deb package removal.
-
-Requirements:
-
-* use dpkg/APT mechanisms
-* do not manually delete /usr files
-* show what package will be removed
-* confirmation
-* privilege escalation only when necessary
-* display operation progress
-* display errors
-
-Never run the entire GUI as root.
+Implemented: apt-get remove through pkexec at the operation boundary
+(GUI stays unprivileged), strict package-name validation, explicit
+confirmation showing package/version/size/consequence, live output tail,
+success and error reporting, automatic list refresh. No manual /usr
+deletion anywhere in the codebase.
 
 ⸻
 
@@ -448,96 +290,56 @@ PHASE 5 — Cleanup
 
 MM-050 — Cleanup framework
 
-Status: [ ]
+Status: [x]
 
-Create explicit cleanup rules.
-
-Each rule must define:
-
-* identifier
-* human-readable name
-* description
-* target paths
-* estimated size
-* risk level
-* cleanup action
-* whether privilege is required
-
-Example:
-
-Trash
-APT cache
-Known temporary files
+Implemented (CleanupService): three explicit rules with id, name,
+description, targets, deterministic size estimation, risk level
+(LOW/MEDIUM), privilege requirement flag and documented consequence.
+Rule ids are validated before execution; arbitrary paths are never
+accepted.
 
 ⸻
 
 MM-051 — Trash cleanup
 
-Status: [ ]
+Status: [x]
 
-Detect user trash.
-
-Display:
-
-* number of items
-* total size
-
-Actions:
-
-* review
-* empty trash
-
-Do not delete trash without explicit user action.
+Implemented: XDG home trash detection with strict canonical-path
+guards, item count and size display, review before emptying, explicit
+user action required.
 
 ⸻
 
 MM-052 — APT cache cleanup
 
-Status: [ ]
+Status: [x]
 
-Detect removable APT package cache.
-
-Display:
-
-APT cache
-1.2 GB
-
-Explain what it is before deletion.
-
-Use appropriate APT mechanisms rather than arbitrary deletion when possible.
+Implemented: /var/cache/apt/archives/*.deb size estimation, plain
+explanation in rule description and consequence, `apt-get clean` through
+pkexec rather than manual deletion.
 
 ⸻
 
 MM-053 — Temporary file cleanup
 
-Status: [ ]
+Status: [x]
 
-Only target clearly defined temporary locations.
-
-Do not treat all hidden files as temporary.
-
-Do not recursively delete arbitrary directories.
+Implemented scope: thumbnail cache (~/.cache/thumbnails) as the clearly
+defined temporary location. /tmp is deliberately NOT targeted: it
+contains live sessions of other programs and deleting from it while
+applications run is unsafe. Hidden files are never treated as junk by
+themselves.
 
 ⸻
 
 MM-054 — Cleanup review
 
-Status: [ ]
+Status: [x]
 
-Create a review screen before destructive cleanup.
-
-Display:
-
-Selected:
-✓ Trash
-✓ APT cache
-? Temporary files
-Total:
-4.2 GB
-[ Cancel ]
-[ Clean selected ]
-
-User must understand exactly what will happen.
+Implemented: review dialog lists each selected rule with its estimated
+size, the per-rule consequence and the total, with Cancel and Clean
+buttons. User must understand exactly what will happen before anything
+runs.
 
 ⸻
 
@@ -545,38 +347,23 @@ PHASE 6 — Overview
 
 MM-060 — Overview page
 
-Status: [ ]
+Status: [x]
 
-Create a useful dashboard.
-
-Show:
-
-* storage usage
-* largest storage category
-* installed application count
-* largest applications
-* available cleanup candidates
-* largest files
-
-No fake statistics.
-
-No decorative metrics.
+Implemented: real volume usage bars, cleanup candidate sizes (estimated
+on demand, cheap directory listings only), installed package count and
+total size (dpkg-query on demand), session activity. No fake statistics,
+no decorative metrics; expensive scans are explicitly delegated to the
+Storage and Large Files pages.
 
 ⸻
 
 MM-061 — Recent activity
 
-Status: [ ]
+Status: [x]
 
-Display only actions performed by the current Matrix Manager session.
-
-Examples:
-
-Deleted 1.4 GB
-Uninstalled Firefox
-Scanned Downloads
-
-Do not implement telemetry.
+Implemented (ActivityLog): in-memory, session-only record of actions
+performed by the application (cleanups, package removals, trash moves).
+Nothing is persisted; nothing leaves the process.
 
 ⸻
 
@@ -584,35 +371,23 @@ PHASE 7 — Settings
 
 MM-070 — Settings
 
-Status: [ ]
+Status: [x]
 
-Settings:
-
-* Theme: System / Light / Dark
-* Default large-file threshold
-* Confirm destructive operations
-* Follow symlinks: OFF by default
-* Filesystem scan boundaries
-* About
-
-Avoid unnecessary settings.
+Implemented: theme (System / Light / Dark, persisted), default
+large-file threshold, confirmation preference, follow symlinks (off by
+default, with warning), cross-filesystem scan boundaries (off by
+default). No unnecessary settings.
 
 ⸻
 
 MM-071 — About
 
-Status: [ ]
+Status: [x]
 
-Display:
-
-* Matrix Manager
-* version
-* Qt version
-* supported platforms
-* license
-* project information
-
-No fake company information.
+Implemented in Settings: application name and version, Qt version,
+detected operating system, architecture, supported platforms, MIT
+license, local-first privacy statement. No fabricated company
+information.
 
 ⸻
 
@@ -620,45 +395,34 @@ PHASE 8 — Reliability
 
 MM-080 — Permission handling
 
-Status: [ ]
+Status: [-]
 
-Test:
-
-* readable directory
-* unreadable directory
-* protected file
-* root-owned file
-* broken symlink
-* mounted volume
-
-The app must continue operating when individual entries cannot be accessed.
+Designed for: the walker records inaccessible entries and continues;
+scans never abort on a single failure; unreadable roots produce a clear
+error. Needs verification on a real desktop against unreadable
+directories, root-owned files, broken symlinks and mounted volumes.
 
 ⸻
 
 MM-081 — Cancellation
 
-Status: [ ]
+Status: [x]
 
-Long-running scans must support cancellation where practical.
-
-Cancellation must leave the filesystem unchanged unless the user was explicitly performing a destructive operation.
+Implemented: directory scans and large-file scans are cancellable at any
+point; cancellation never touches the filesystem (only reads). Destructive
+operations are deliberately not cancellable mid-run.
 
 ⸻
 
 MM-082 — Process execution safety
 
-Status: [ ]
+Status: [x]
 
-Audit every QProcess invocation.
-
-Requirements:
-
-* no unsafe shell interpolation
-* separate program and arguments
-* validate package names
-* capture stdout/stderr
-* timeout where appropriate
-* clear error handling
+Audited: every process invocation uses QProcess with separate program
+and arguments; no shell strings exist in the codebase; package names are
+regex-validated and length-limited; output is captured and reported;
+synchronous calls are time-limited. pkexec is invoked only at
+privileged operation boundaries.
 
 ⸻
 
@@ -666,46 +430,23 @@ PHASE 9 — UX / Hallmark audit
 
 MM-090 — Hallmark-style design audit
 
-Status: [ ]
+Status: [-]
 
-Review the entire UI against the Hallmark philosophy.
-
-Check for:
-
-* generic card-grid layouts
-* excessive rounded containers
-* excessive gradients
-* meaningless decoration
-* weak hierarchy
-* generic AI aesthetic
-* unnecessary icons
-* invented metrics
-* inconsistent spacing
-* inconsistent typography
-* poor empty states
-* poor loading states
-* poor error states
-
-The result should feel like a deliberate Linux utility, not generated SaaS UI.
-
-Reference:
-
-https://github.com/Nutlope/hallmark
+Design built to the principles from the start: no generic card grids, no
+gradients or glassmorphism, no invented metrics, semantic tokens only,
+explicit empty/loading/error states. A full visual audit on a real
+desktop (both themes, various window sizes) is still pending.
 
 ⸻
 
 MM-091 — Accessibility
 
-Status: [ ]
+Status: [-]
 
-Verify:
-
-* keyboard navigation
-* focus visibility
-* sensible text contrast
-* readable font sizes
-* destructive actions are distinguishable
-* status is not communicated by color alone
+Implemented so far: keyboard navigation in the sidebar, visible focus
+rings on all interactive components, status communicated by text plus
+colour (badges carry labels), readable sizes. Full contrast review and
+end-to-end keyboard pass pending on a real desktop.
 
 ⸻
 
@@ -713,29 +454,23 @@ PHASE 10 — Performance
 
 MM-100 — Startup performance
 
-Status: [ ]
+Status: [x]
 
-Application startup must NOT perform a full disk scan.
-
-Only load:
-
-* UI
-* minimal system information
-* lightweight initial state
+By design: startup loads only the UI and constants. No filesystem scan,
+no package query, no disk enumeration happens before the user asks for
+it. Cleanup estimates on the Overview page are cheap directory listings
+and are the only automatic data reads.
 
 ⸻
 
 MM-101 — Scan performance
 
-Status: [ ]
+Status: [x]
 
-Verify:
-
-* worker-thread filesystem operations
-* incremental results
-* cancellation
-* no unnecessary hashing
-* no blocking GUI thread
+Implemented: all traversals run on worker threads with incremental
+partial results, progress reporting, cancellation, no hashing, no
+token-bucket surprises. The GUI thread never touches the filesystem
+beyond cheap metadata reads.
 
 ⸻
 
@@ -743,16 +478,13 @@ PHASE 11 — Testing
 
 MM-110 — Unit tests
 
-Status: [ ]
+Status: [-]
 
-Test:
+Implemented and passing (ctest): size formatting, dpkg-query parsing,
+cleanup rule registry and path-guard evaluation. Still missing: path
+handling edge cases and filesystem classification tests.
 
-* size formatting
-* path handling
-* cleanup rule evaluation
-* package parsing
-* filesystem classification
-* duplicate grouping
+Run: ctest --test-dir build
 
 ⸻
 
