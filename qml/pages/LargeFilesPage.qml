@@ -42,7 +42,7 @@ Page {
         target: LargeFileService
 
         function onProgressChanged(filesSeen) {
-            progressDetail.text = Qt.locale().toString(filesSeen) + qsTr(" files checked")
+            progressDetail.text = SystemInfo.formatCount(filesSeen) + qsTr(" files checked")
         }
 
         function onFinished(rootPath, thresholdBytes, summary) {
@@ -176,7 +176,7 @@ Page {
                     Text {
                         text: LargeFileService.model.count > 0
                               ? qsTr("%1 files · %2 total").arg(
-                                    Qt.locale().toString(LargeFileService.model.count)).arg(
+                                    SystemInfo.formatCount(LargeFileService.model.count)).arg(
                                     SystemInfo.formatBytes(LargeFileService.model.totalBytes))
                               : qsTr("Results")
                         font.pixelSize: Theme.fontSizeLG

@@ -73,7 +73,7 @@ Page {
                     Text {
                         text: PackageService.model.totalCount > 0
                               ? qsTr("%1 packages · %2 installed size").arg(
-                                    Qt.locale().toString(PackageService.model.totalCount)).arg(
+                                    SystemInfo.formatCount(PackageService.model.totalCount)).arg(
                                     SystemInfo.formatBytes(PackageService.model.totalInstalledBytes))
                               : qsTr("Installed packages")
                         font.pixelSize: Theme.fontSizeSM

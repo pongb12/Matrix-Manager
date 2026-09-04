@@ -52,3 +52,8 @@ QString SystemInfo::formatDateTime(const QDateTime &timestamp)
 {
     return timestamp.toLocalTime().toString(QStringLiteral("yyyy-MM-dd HH:mm"));
 }
+
+QString SystemInfo::formatCount(quint64 value)
+{
+    return QLocale().toString(qlonglong(value));
+}

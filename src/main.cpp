@@ -14,12 +14,31 @@
 #include "packages/PackageService.h"
 #include "cleanup/CleanupService.h"
 
+#include <QFile>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QQuickWindow>
+#include <QTimer>
 #include <QUrl>
 #include <qqml.h>
+
+#ifdef MM_QA_SUPPORT
+// Minimal file logger for automated UI checks. Only registered when the
+// MM_QA environment is active; normal users never see this object.
+class QaLog : public QObject
+{
+    Q_OBJECT
+public:
+    Q_INVOKABLE void log(const QString &line)
+    {
+        QFile f(QStringLiteral("/tmp/mm_qa.log"));
+        if (f.open(QIODevice::Append))
+            f.write(line.toUtf8() + '\n');
+    }
+};
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -55,6 +74,19 @@ int main(int argc, char *argv[])
     // QML modules share RESOURCE_PREFIX /qml (see CMakeLists.txt).
     engine.addImportPath(QStringLiteral("qrc:/qml"));
 
+    // QA support: MM_QA_SCAN=<path> auto-starts a storage scan so that
+    // automated UI checks can exercise the results table. Unset normally.
+    const QString qaScan = qEnvironmentVariable("MM_QA_SCAN");
+#ifdef MM_QA_SUPPORT
+    if (!qaScan.isEmpty()) {
+        engine.rootContext()->setContextProperty(QStringLiteral("qaScanPath"), qaScan);
+        engine.rootContext()->setContextProperty(QStringLiteral("qaLog"), new QaLog());
+        QFile::remove(QStringLiteral("/tmp/mm_qa.log"));
+    }
+#else
+    Q_UNUSED(qaScan);
+#endif
+
     const QUrl url(QStringLiteral("qrc:/qml/MatrixManager/Main.qml"));
     // objectCreated works on Qt 6.0+; objectCreationFailed would need 6.5+.
     // A null root object means QML creation failed (syntax error, missing
@@ -70,5 +102,38 @@ int main(int argc, char *argv[])
         Qt::QueuedConnection);
     engine.load(url);
 
+    // QA support: MM_QA_PAGES="0,1,..." + MM_QA_OUT=<dir> capture a PNG of
+    // each listed page for automated UI inspection, then quit.
+    const QString qaPages = qEnvironmentVariable("MM_QA_PAGES");
+    const QString qaOut = qEnvironmentVariable("MM_QA_OUT");
+    if (!qaPages.isEmpty() && !qaOut.isEmpty()) {
+        if (auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0))) {
+            int delay = 600;
+            const QStringList indexes = qaPages.split(',');
+            for (const QString &s : indexes) {
+                bool ok = false;
+                const int idx = s.toInt(&ok);
+                if (!ok)
+                    continue;
+                QTimer::singleShot(delay, win, [win, idx]() {
+                    QMetaObject::invokeMethod(win, "qaShowPage", Q_ARG(QVariant, idx));
+                });
+                delay += 900;
+                const QString out = qaOut + QStringLiteral("/page%1.png").arg(idx);
+                QTimer::singleShot(delay, win, [win, out]() {
+                    const QImage img = win->grabWindow();
+                    const bool ok = !img.isNull() && img.save(out);
+                    qInfo() << "[qa] grab" << out << "size" << img.size() << "ok" << ok;
+                });
+                delay += 200;
+            }
+            QTimer::singleShot(delay + 300, win, &QCoreApplication::quit);
+        }
+    }
+
     return app.exec();
 }
+
+#ifdef MM_QA_SUPPORT
+#include "main.moc"
+#endif

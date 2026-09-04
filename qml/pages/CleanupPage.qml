@@ -110,12 +110,13 @@ Page {
         }
 
         ScrollView {
+            id: pageScroll
             Layout.fillWidth: true
             Layout.fillHeight: true
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
             ColumnLayout {
-                width: Math.max(implicitWidth, page.availableWidth)
+                width: pageScroll.width
                 spacing: Theme.spacingLG
 
                 // --------------------------------------------- rule list
@@ -213,7 +214,7 @@ Page {
                                     text: ruleCard.estimate === null
                                           ? ""
                                           : qsTr("%1 items").arg(
-                                                Qt.locale().toString(ruleCard.estimate.itemCount))
+                                                SystemInfo.formatCount(ruleCard.estimate.itemCount))
                                     font.pixelSize: Theme.fontSizeXS
                                     color: Theme.textMuted
                                     horizontalAlignment: Text.AlignRight

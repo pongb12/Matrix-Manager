@@ -77,6 +77,13 @@ target_compile_definitions(matrix-manager PRIVATE
     QT_MESSAGELOGCONTEXT
 )
 
+# Optional QA instrumentation for automated UI checks (screenshots, model
+# probes). Off by default; enable with -DMM_QA_SUPPORT=ON.
+option(MM_QA_SUPPORT "Compile QA hooks (file logger for UI checks)" OFF)
+if(MM_QA_SUPPORT)
+    target_compile_definitions(matrix-manager PRIVATE MM_QA_SUPPORT)
+endif()
+
 # ---------------------------------------------------------------------------
 # QML modules
 # All modules share RESOURCE_PREFIX /qml; the engine adds "qrc:/qml" as an

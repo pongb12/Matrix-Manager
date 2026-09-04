@@ -45,12 +45,13 @@ Page {
         }
 
         ScrollView {
+            id: pageScroll
             Layout.fillWidth: true
             Layout.fillHeight: true
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
             ColumnLayout {
-                width: Math.max(implicitWidth, page.availableWidth)
+                width: pageScroll.width
                 spacing: Theme.spacingLG
 
                 // ------------------------------------------ appearance

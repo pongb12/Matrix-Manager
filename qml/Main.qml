@@ -47,6 +47,11 @@ ApplicationWindow {
         }
     }
 
+    // QA hook used by automated UI checks (no effect in normal use).
+    function qaShowPage(i) {
+        navList.currentIndex = i
+    }
+
     RowLayout {
         anchors.fill: parent
         spacing: 0

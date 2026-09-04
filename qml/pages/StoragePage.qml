@@ -25,6 +25,12 @@ Page {
     property bool sortByName: false
     property bool sortAscending: false
 
+    Component.onCompleted: {
+        // QA hook: auto-start a scan when requested (automated UI checks).
+        if (typeof qaScanPath !== "undefined" && qaScanPath !== "")
+            page.startScan(qaScanPath)
+    }
+
     readonly property bool isHomeScan: lastScanRoot === StorageService.homePath()
     readonly property var knownCategories: [
         "Desktop", "Documents", "Downloads", "Music",
@@ -36,13 +42,23 @@ Page {
 
         onPartialResults: (rootPath, partialEntries) => {
             if (rootPath === page.scanPath) {
+                if (partialEntries.length > 0 && !page.qaLogged) {
+                    page.qaLogged = true
+                    const e = partialEntries[0]
+                    if (typeof qaLog !== "undefined")
+                        qaLog.log("entry keys=" + Object.keys(e).join(",")
+                                  + " files=" + JSON.stringify(e.files)
+                                  + " typeof=" + typeof e.files
+                                  + " bytes=" + JSON.stringify(e.bytes)
+                                  + " typeobytes=" + typeof e.bytes)
+                }
                 page.entries = partialEntries
                 page.sortEntries()
             }
         }
 
         onProgressChanged: (filesSeen) => {
-            progressDetail.text = Qt.locale().toString(filesSeen) + qsTr(" files checked")
+            progressDetail.text = SystemInfo.formatCount(filesSeen) + qsTr(" files checked")
         }
 
         onFinished: (rootPath, finalEntries, summary) => {
@@ -116,11 +132,15 @@ Page {
         }
 
         ScrollView {
+            id: pageScroll
             Layout.fillWidth: true
             Layout.fillHeight: true
 
             ColumnLayout {
-                width: Math.max(implicitWidth, page.availableWidth)
+                // Never wider than the scroll viewport: sizing from the
+                // page width here made the content overflow past the right
+                // window edge (no clipping, cut-off buttons and columns).
+                width: pageScroll.width
                 spacing: Theme.spacingLG
 
                 // ------------------------------------------------ volumes
@@ -465,7 +485,13 @@ Page {
                                 }
 
                                 Text {
-                                    text: modelData.files > 0 ? Qt.locale().toString(modelData.files) : "—"
+                                    // Integer formatting goes through C++
+                                    // SystemInfo.formatCount: QLocale.toString
+                                    // from QML is broken on Qt 6.2-6.4 and
+                                    // renders "[object Object]".
+                                    text: modelData.files > 0
+                                            ? SystemInfo.formatCount(modelData.files)
+                                            : "—"
                                     font.pixelSize: Theme.fontSizeSM
                                     font.family: Theme.monoFamily
                                     color: Theme.textMuted
@@ -508,7 +534,7 @@ Page {
                                     : ""
                                 return qsTr("%1 total · %2 files%3%4").arg(
                                     SystemInfo.formatBytes(page.summary.totalBytes || 0)).arg(
-                                    Qt.locale().toString(page.summary.totalFiles || 0)).arg(
+                                    SystemInfo.formatCount(page.summary.totalFiles || 0)).arg(
                                     errors).arg(cancelled)
                             }
                         }

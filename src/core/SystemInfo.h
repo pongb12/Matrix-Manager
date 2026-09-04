@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QLocale>
 #include <QObject>
 #include <QString>
 
@@ -34,6 +35,10 @@ public:
     // Size formatting exposed to QML (single convention, DOC.md rule 7).
     Q_INVOKABLE static QString formatBytes(quint64 bytes);
     Q_INVOKABLE static QString formatDateTime(const QDateTime &timestamp);
+    // Locale-aware integer formatting. QLocale must be used from C++:
+    // the single-argument QLocale.toString(number) overload is unreachable
+    // from QML on Qt 6.2-6.4 and renders "[object Object]".
+    Q_INVOKABLE static QString formatCount(quint64 value);
 
 private:
     static QString detectOsName();
