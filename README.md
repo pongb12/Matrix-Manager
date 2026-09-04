@@ -53,10 +53,37 @@ Matrix Manager follows a strict set of rules (see `AGENT.md` and `DOC.md`):
 
 ### Install dependencies (Debian family)
 
+The project is a Qt Quick (QML) application, so it needs the Qt declarative
+development package in addition to the base Qt package. It also needs the
+runtime QML modules at launch time — these are separate packages from the
+`-dev` ones and are not installed automatically by `qt6-declarative-dev`.
+
 ```bash
 sudo apt install build-essential cmake \
     qt6-base-dev qt6-declarative-dev qt6-base-dev-tools \
-    libgl1-mesa-dev
+    libgl1-mesa-dev libxkbcommon-dev \
+    qml6-module-qtquick \
+    qml6-module-qtquick-controls \
+    qml6-module-qtquick-layouts \
+    qml6-module-qtquick-window \
+    qml6-module-qtqml-workerscript
+```
+
+What each Qt package is for:
+
+| Package | Why it is needed |
+|---|---|
+| `qt6-base-dev` | Qt Core / Gui development files (build) |
+| `qt6-declarative-dev` | Qt Qml / Quick / QuickControls2 development files (build) |
+| `libxkbcommon-dev` | Keyboard input support for Qt Gui (build) |
+| `qml6-module-qtquick*` | Runtime QML modules: QtQuick, Controls (Basic style), Layouts (run) |
+| `qml6-module-qtqml-workerscript` | Runtime helper module required by QtQuick (run) |
+
+If a build already failed because of a missing Qt component, delete the
+stale build directory before reconfiguring:
+
+```bash
+rm -rf build
 ```
 
 ### Build and run
