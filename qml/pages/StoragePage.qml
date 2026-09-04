@@ -6,6 +6,7 @@
  * that could not be read instead of hiding them.
  */
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import MatrixManager.Core

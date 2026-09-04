@@ -56,11 +56,17 @@ int main(int argc, char *argv[])
     engine.addImportPath(QStringLiteral("qrc:/qml"));
 
     const QUrl url(QStringLiteral("qrc:/qml/MatrixManager/Main.qml"));
+    // objectCreated works on Qt 6.0+; objectCreationFailed would need 6.5+.
+    // A null root object means QML creation failed (syntax error, missing
+    // module, ...) — quit with a non-zero status instead of a blank window.
     QObject::connect(
         &engine,
-        &QQmlApplicationEngine::objectCreationFailed,
+        &QQmlApplicationEngine::objectCreated,
         &app,
-        []() { QCoreApplication::exit(EXIT_FAILURE); },
+        [url](QObject *obj, const QUrl &objUrl) {
+            if (objUrl == url && obj == nullptr)
+                QCoreApplication::exit(EXIT_FAILURE);
+        },
         Qt::QueuedConnection);
     engine.load(url);
 

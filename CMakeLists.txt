@@ -158,6 +158,25 @@ qt_add_qml_module(matrix-manager
 
 target_link_libraries(matrix-manager PRIVATE mm_theme mm_components mm_pages)
 
+# ---------------------------------------------------------------------------
+# Static QML module plugin import
+#
+# Qt 6.5+ links the plugins of the project's static QML modules into the
+# executable automatically during target finalization. On Qt 6.2 - 6.4 with
+# a shared (distro) Qt build the finalizer returns early for shared Qt, so
+# the plugins are never linked and the app fails at startup with:
+#   module "MatrixManager.Theme" plugin "mm_themeplugin" not found
+#
+# Link the generated plugin targets directly. This is the supported manual
+# pattern for Qt 6.2 - 6.4; on Qt 6.5+ it is redundant but harmless because
+# CMake de-duplicates the repeated link entries against the finalizer's own.
+# ---------------------------------------------------------------------------
+foreach(_mm_qml_plugin mm_themeplugin mm_componentsplugin mm_pagesplugin)
+    if(TARGET ${_mm_qml_plugin})
+        target_link_libraries(matrix-manager PRIVATE ${_mm_qml_plugin})
+    endif()
+endforeach()
+
 qt_add_resources(matrix-manager "appicon"
     PREFIX "/"
     FILES

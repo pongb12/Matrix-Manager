@@ -2,6 +2,7 @@
 // Always shows action, target, size and consequence (AGENT.md rule 7,
 // DOC.md rule 26). Never a vague "Are you sure?".
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import MatrixManager.Theme
