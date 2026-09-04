@@ -64,6 +64,7 @@ sudo apt install build-essential cmake \
     libgl1-mesa-dev libxkbcommon-dev \
     qml6-module-qtquick \
     qml6-module-qtquick-controls \
+    qml6-module-qtquick-templates \
     qml6-module-qtquick-layouts \
     qml6-module-qtquick-window \
     qml6-module-qtqml-workerscript
@@ -76,7 +77,7 @@ What each Qt package is for:
 | `qt6-base-dev` | Qt Core / Gui development files (build) |
 | `qt6-declarative-dev` | Qt Qml / Quick / QuickControls2 development files (build) |
 | `libxkbcommon-dev` | Keyboard input support for Qt Gui (build) |
-| `qml6-module-qtquick*` | Runtime QML modules: QtQuick, Controls (Basic style), Layouts (run) |
+| `qml6-module-qtquick*` | Runtime QML modules: QtQuick, Controls (Basic style), Templates, Layouts (run) |
 | `qml6-module-qtqml-workerscript` | Runtime helper module required by QtQuick (run) |
 
 If a build already failed because of a missing Qt component, delete the
