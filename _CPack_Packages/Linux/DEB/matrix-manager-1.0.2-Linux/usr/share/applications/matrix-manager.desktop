@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Matrix Manager
+GenericName=Storage Manager
+Comment=Inspect disk usage, manage .deb applications and clean safe-to-remove data
+Exec=matrix-manager
+Icon=matrix-manager
+Terminal=false
+Categories=System;FileTools;Utility;FileManager;
+Keywords=storage;disk;usage;cleaner;packages;dpkg;apt;
+StartupNotify=true

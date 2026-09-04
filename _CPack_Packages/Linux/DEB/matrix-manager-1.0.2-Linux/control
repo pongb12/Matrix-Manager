@@ -1,0 +1,13 @@
+Architecture: amd64
+Depends: libqt6core6t64 | libqt6core6, libqt6gui6, libqt6qml6, libqt6qmlmodels6, libqt6quick6, libqt6quickcontrols2-6, libqt6qmlworkerscript6, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-templates, qml6-module-qtquick-layouts, qml6-module-qtquick-window, qml6-module-qtqml-workerscript
+Description: Local-first disk space and .deb application manager
+ Matrix Manager is a local-first Linux desktop utility for managing
+ disk space and installed .deb applications. It never scans on its own,
+ never deletes without explicit confirmation, works entirely offline and
+ ships with a Vietnamese and English interface.
+Maintainer: pongb12 <pongb12@users.noreply.github.com>
+Package: matrix-manager
+Priority: optional
+Section: utils
+Version: 1.0.2
+Installed-Size: 3777

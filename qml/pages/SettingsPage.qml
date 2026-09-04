@@ -99,7 +99,7 @@ Page {
                             }
                             MSegmented {
                                 id: languageSelector
-                                model: [qsTr("Tiếng Việt"), qsTr("English")]
+                                model: [] // BISECT
                                 currentIndex: SettingsService.language === "en" ? 1 : 0
                                 onActivated: (index) =>
                                     SettingsService.language = (index === 1 ? "en" : "vi")

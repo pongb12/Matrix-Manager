@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Matrix Manager application icon (placeholder per MM-003).
+  Minimal mark: dark square with a stylised "M" and accent bar.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect x="4" y="4" width="120" height="120" rx="18" fill="#191D21"/>
+  <rect x="4" y="4" width="120" height="120" rx="18" fill="none" stroke="#2A3037" stroke-width="2"/>
+  <rect x="24" y="96" width="14" height="8" rx="2" fill="#4C9E7F"/>
+  <path d="M32 88 L32 44 L48 68 L64 44 L64 88"
+        fill="none" stroke="#E6E9EC" stroke-width="9"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M76 88 L76 44 L96 74 L96 88"
+        fill="none" stroke="#4C9E7F" stroke-width="9"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

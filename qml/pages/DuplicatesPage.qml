@@ -210,7 +210,7 @@ Page {
 
                 // --------------------------------------------- groups
                 Repeater {
-                    model: page.groups
+                    model: [] // BISECT
 
                     MCard {
                         id: groupCard

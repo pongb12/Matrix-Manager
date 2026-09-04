@@ -15,3 +15,11 @@ add_test(NAME tst_packageparser COMMAND tst_packageparser)
 add_executable(tst_cleanuprules tst_cleanuprules.cpp)
 target_link_libraries(tst_cleanuprules PRIVATE matrix_core Qt6::Test)
 add_test(NAME tst_cleanuprules COMMAND tst_cleanuprules)
+
+add_executable(tst_duplicatescanner tst_duplicatescanner.cpp)
+target_link_libraries(tst_duplicatescanner PRIVATE matrix_core Qt6::Test)
+add_test(NAME tst_duplicatescanner COMMAND tst_duplicatescanner)
+
+add_executable(tst_filesearcher tst_filesearcher.cpp)
+target_link_libraries(tst_filesearcher PRIVATE matrix_core Qt6::Test)
+add_test(NAME tst_filesearcher COMMAND tst_filesearcher)

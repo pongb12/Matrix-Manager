@@ -72,9 +72,10 @@ ColumnLayout {
             font.pixelSize: Theme.fontSizeSM
             color: Theme.textMuted
             horizontalAlignment: Text.AlignRight
-            // Cap the right legend so the left one keeps usable space with
-            // longer (translated) strings; both elide gracefully.
-            Layout.maximumWidth: usageBar.width * 0.62
+            // Deterministic cap so the left legend keeps usable space with
+            // longer (translated) strings; a parent-fraction bound here
+            // recursed in Qt 6.2-6.4 layouts.
+            Layout.maximumWidth: 190
             elide: Text.ElideRight
         }
     }

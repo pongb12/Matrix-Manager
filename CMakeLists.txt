@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(MatrixManager VERSION 1.0.1 LANGUAGES CXX)
+project(MatrixManager VERSION 1.0.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -224,3 +224,50 @@ if(MM_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
+
+# ---------------------------------------------------------------------------
+# Debian package (CPack)
+#
+#   cmake -S . -B build && cmake --build build
+#   cpack --config build/CPackConfig.cmake -G DEB
+#       -> matrix-manager_<version>_amd64.deb
+#
+# Install with the package manager so dependencies resolve:
+#   sudo apt install ./matrix-manager_<version>_amd64.deb
+#
+# The dependency list covers Ubuntu 22.04 / Mint 21 (jammy) and
+# Ubuntu 24.04 / Mint 22 (noble); the alternative dependency syntax
+# covers the libqt6core6 -> libqt6core6t64 rename in newer releases.
+# ---------------------------------------------------------------------------
+set(CPACK_PACKAGE_NAME "matrix-manager")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VENDOR "Matrix Manager")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
+    "Local-first disk space and .deb application manager")
+set(CPACK_PACKAGE_DESCRIPTION
+    "Matrix Manager is a local-first Linux desktop utility for managing
+disk space and installed .deb applications. It never scans on its own,
+never deletes without explicit confirmation, works entirely offline and
+ships with a Vietnamese and English interface.")
+set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER
+    "pongb12 <pongb12@users.noreply.github.com>")
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS
+    "libqt6core6t64 | libqt6core6, \
+libqt6gui6, \
+libqt6qml6, \
+libqt6qmlmodels6, \
+libqt6quick6, \
+libqt6quickcontrols2-6, \
+libqt6qmlworkerscript6, \
+qml6-module-qtquick, \
+qml6-module-qtquick-controls, \
+qml6-module-qtquick-templates, \
+qml6-module-qtquick-layouts, \
+qml6-module-qtquick-window, \
+qml6-module-qtqml-workerscript")
+set(CPACK_GENERATOR "DEB")
+include(CPack)

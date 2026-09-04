@@ -31,14 +31,8 @@ Page {
         // QA hook: auto-start a scan when requested (automated UI checks).
         if (typeof qaScanPath !== "undefined" && qaScanPath !== "")
             page.startScan(qaScanPath)
-        if (typeof qaStorageMode !== "undefined") {
+        if (typeof qaStorageMode !== "undefined")
             modeSelector.currentIndex = qaStorageMode
-            if (qaStorageMode === 1) {
-                searchName.text = typeof qaSearchName !== "undefined"
-                                  ? qaSearchName : ""
-                startSearch()
-            }
-        }
     }
 
     readonly property bool isHomeScan: lastScanRoot === StorageService.homePath()
@@ -180,7 +174,6 @@ Page {
 
         MSegmented {
             id: modeSelector
-            Layout.fillWidth: true
             model: [qsTr("Directory usage"), qsTr("Search"), qsTr("Treemap")]
         }
 
@@ -600,9 +593,29 @@ Page {
                     }
                 }
 
-                // ============================================ search (MM-031)
+                Loader {
+                    Layout.fillWidth: true
+                    active: modeSelector.currentIndex === 1
+                    sourceComponent: searchCardComp
+                }
+                // QA note: the search card auto-starts a scan from its own
+                // Component.onCompleted when MM_QA_* variables are present.
+
+                Loader {
+                    Layout.fillWidth: true
+                    active: modeSelector.currentIndex === 2
+                    sourceComponent: treemapCardComp
+                }
+
+            }
+        }
+    }
+
+    Component {
+        id: searchCardComp
                 MCard {
-                    visible: modeSelector.currentIndex === 1
+            width: parent.width
+            height: implicitHeight
                     Layout.fillWidth: true
                     implicitHeight: searchCard.implicitHeight + Theme.spacingLG * 2
 
@@ -611,6 +624,16 @@ Page {
                         anchors.fill: parent
                         anchors.margins: Theme.spacingLG
                         spacing: Theme.spacingMD
+
+                        Component.onCompleted: {
+                            // QA hook (see page comment): ids like searchName
+                            // live inside this component's scope.
+                            if (typeof qaStorageMode !== "undefined") {
+                                if (typeof qaSearchName !== "undefined")
+                                    searchName.text = qaSearchName
+                                page.startSearch()
+                            }
+                        }
 
                         RowLayout {
                             Layout.fillWidth: true
@@ -621,9 +644,13 @@ Page {
                                 font.pixelSize: Theme.fontSizeMD
                                 color: Theme.textMuted
                             }
-                            TextField {
-                                id: searchRoot
+                            Item {
                                 Layout.fillWidth: true
+                                Layout.preferredHeight: 38
+
+                                TextField {
+                                id: searchRoot
+                                anchors.fill: parent
                                 text: StorageService.homePath()
                                 font.pixelSize: Theme.fontSizeSM
                                 font.family: Theme.monoFamily
@@ -638,6 +665,8 @@ Page {
                                 }
 
                                 onAccepted: page.startSearch()
+                                }
+
                             }
                             MButton {
                                 text: fileSearcher.running ? qsTr("Scanning…") : qsTr("Search")
@@ -650,70 +679,94 @@ Page {
                             Layout.fillWidth: true
                             spacing: Theme.spacingSM
 
-                            TextField {
-                                id: searchName
+                            Item {
                                 Layout.fillWidth: true
-                                placeholderText: qsTr("Name contains")
-                                font.pixelSize: Theme.fontSizeSM
-                                color: Theme.textPrimary
-                                placeholderTextColor: Theme.textMuted
-                                selectByMouse: true
+                                Layout.preferredHeight: 38
 
-                                background: Rectangle {
-                                    radius: Theme.radiusMD
-                                    color: Theme.surfaceSunken
-                                    border.width: searchName.activeFocus ? Theme.focusWidth : Theme.borderWidth
-                                    border.color: searchName.activeFocus ? Theme.focus : Theme.border
+                                TextField {
+                                    id: searchName
+                                    anchors.fill: parent
+                                    placeholderText: qsTr("Name contains")
+                                    font.pixelSize: Theme.fontSizeSM
+                                    color: Theme.textPrimary
+                                    placeholderTextColor: Theme.textMuted
+                                    selectByMouse: true
+
+                                    background: Rectangle {
+                                        radius: Theme.radiusMD
+                                        color: Theme.surfaceSunken
+                                        border.width: searchName.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                        border.color: searchName.activeFocus ? Theme.focus : Theme.border
+                                    }
                                 }
                             }
-                            TextField {
-                                id: searchExt
-                                Layout.preferredWidth: 120
-                                placeholderText: qsTr("Extension")
-                                font.pixelSize: Theme.fontSizeSM
-                                color: Theme.textPrimary
-                                placeholderTextColor: Theme.textMuted
-                                selectByMouse: true
+                            // Fixed-width fields sit in plain wrapper
+                            // Items: a TextField with Layout.preferredWidth
+                            // inside a RowLayout triggers a recursive
+                            // rearrange loop on Qt 6.2-6.4.
+                            Item {
+                                Layout.preferredWidth: 130
+                                Layout.preferredHeight: 38
 
-                                background: Rectangle {
-                                    radius: Theme.radiusMD
-                                    color: Theme.surfaceSunken
-                                    border.width: searchExt.activeFocus ? Theme.focusWidth : Theme.borderWidth
-                                    border.color: searchExt.activeFocus ? Theme.focus : Theme.border
+                                TextField {
+                                    id: searchExt
+                                    anchors.fill: parent
+                                    placeholderText: qsTr("Extension")
+                                    font.pixelSize: Theme.fontSizeSM
+                                    color: Theme.textPrimary
+                                    placeholderTextColor: Theme.textMuted
+                                    selectByMouse: true
+
+                                    background: Rectangle {
+                                        radius: Theme.radiusMD
+                                        color: Theme.surfaceSunken
+                                        border.width: searchExt.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                        border.color: searchExt.activeFocus ? Theme.focus : Theme.border
+                                    }
                                 }
                             }
-                            TextField {
-                                id: searchMin
+                            Item {
                                 Layout.preferredWidth: 140
-                                placeholderText: qsTr("Min size (MB)")
-                                font.pixelSize: Theme.fontSizeSM
-                                color: Theme.textPrimary
-                                placeholderTextColor: Theme.textMuted
-                                selectByMouse: true
-                                validator: IntValidator { bottom: 0 }
+                                Layout.preferredHeight: 38
 
-                                background: Rectangle {
-                                    radius: Theme.radiusMD
-                                    color: Theme.surfaceSunken
-                                    border.width: searchMin.activeFocus ? Theme.focusWidth : Theme.borderWidth
-                                    border.color: searchMin.activeFocus ? Theme.focus : Theme.border
+                                TextField {
+                                    id: searchMin
+                                    anchors.fill: parent
+                                    placeholderText: qsTr("Min size (MB)")
+                                    font.pixelSize: Theme.fontSizeSM
+                                    color: Theme.textPrimary
+                                    placeholderTextColor: Theme.textMuted
+                                    selectByMouse: true
+                                    validator: IntValidator { bottom: 0 }
+
+                                    background: Rectangle {
+                                        radius: Theme.radiusMD
+                                        color: Theme.surfaceSunken
+                                        border.width: searchMin.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                        border.color: searchMin.activeFocus ? Theme.focus : Theme.border
+                                    }
                                 }
                             }
-                            TextField {
-                                id: searchMax
+                            Item {
                                 Layout.preferredWidth: 140
-                                placeholderText: qsTr("Max size (MB)")
-                                font.pixelSize: Theme.fontSizeSM
-                                color: Theme.textPrimary
-                                placeholderTextColor: Theme.textMuted
-                                selectByMouse: true
-                                validator: IntValidator { bottom: 0 }
+                                Layout.preferredHeight: 38
 
-                                background: Rectangle {
-                                    radius: Theme.radiusMD
-                                    color: Theme.surfaceSunken
-                                    border.width: searchMax.activeFocus ? Theme.focusWidth : Theme.borderWidth
-                                    border.color: searchMax.activeFocus ? Theme.focus : Theme.border
+                                TextField {
+                                    id: searchMax
+                                    anchors.fill: parent
+                                    placeholderText: qsTr("Max size (MB)")
+                                    font.pixelSize: Theme.fontSizeSM
+                                    color: Theme.textPrimary
+                                    placeholderTextColor: Theme.textMuted
+                                    selectByMouse: true
+                                    validator: IntValidator { bottom: 0 }
+
+                                    background: Rectangle {
+                                        radius: Theme.radiusMD
+                                        color: Theme.surfaceSunken
+                                        border.width: searchMax.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                        border.color: searchMax.activeFocus ? Theme.focus : Theme.border
+                                    }
                                 }
                             }
                         }
@@ -843,10 +896,13 @@ Page {
                         }
                     }
                 }
+    }
 
-                // ============================================ treemap (MM-023)
+    Component {
+        id: treemapCardComp
                 MCard {
-                    visible: modeSelector.currentIndex === 2
+            width: parent.width
+            height: implicitHeight
                     Layout.fillWidth: true
                     implicitHeight: treemapCard.implicitHeight + Theme.spacingLG * 2
 
@@ -902,8 +958,6 @@ Page {
                         }
                     }
                 }
-            }
-        }
     }
 
     // Error dialog for scan failures.

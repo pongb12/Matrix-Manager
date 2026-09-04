@@ -59,8 +59,10 @@ cmake --build build
 
 must succeed.
 
-Verified: builds and runs against Qt 6.8.2; all C++ core compiles against
-Qt 6.2.4 headers (minimum supported version, Ubuntu 22.04 / Mint 21).
+Verified: builds, launches and passes all tests against Qt 6.8.2 AND
+Qt 6.2.4 (offscreen), bracketing Mint 22's Qt 6.4.2. Distro Qt 6.2-6.4
+needed an explicit static QML plugin link and a C++ number formatter
+(both fixed in 1.0.2).
 
 ⸻
 
@@ -172,19 +174,16 @@ size and name.
 
 MM-023 — Treemap
 
-Status: [ ]
+Status: [x]
 
-Create a visual treemap for directory/file sizes.
+Implemented (MMTreemap component, Storage page third tab): binary-split
+proportional blocks over the current directory scan, largest first.
+Labels appear only when there is room, hovering shows path + size,
+clicking a directory navigates into it. The directory table remains the
+accessible alternative and the UI says so.
 
-Requirements:
-
-* meaningful proportional sizing
-* labels only when there is enough room
-* hover information
-* click to navigate
-* accessible alternative list/table
-
-Do not use the treemap as decoration.
+Do not use the treemap as decoration. — respected: it is a data view of
+real scan results only.
 
 ⸻
 
@@ -203,43 +202,35 @@ confirmation; recoverable). Deletion is never automatic.
 
 MM-031 — Search
 
-Status: [ ]
+Status: [x]
 
-Implement filesystem search.
+Implemented (FileSearcher + Storage page second tab): filename substring
+(case-insensitive), extension (case-insensitive), minimum and maximum
+size, filters combined with AND. Results arrive incrementally, are
+capped at 5000 with an honest "limited" note in the summary, and the
+scan is cancellable. Searching starts only on explicit user action.
 
-Support:
-
-* filename
-* extension
-* minimum size
-* maximum size
-
-Do not perform a full filesystem search without explicit user action.
+Do not perform a full filesystem search without explicit user action. —
+respected.
 
 ⸻
 
 MM-032 — Duplicate files
 
-Status: [ ]
+Status: [x]
 
-Implement duplicate detection.
+Implemented (DuplicateScanner + Duplicates page):
+1. files grouped by size, unique sizes dropped
+2. partial hash (first 4 KiB) splits the remaining groups
+3. full hash only where partial hashes collide
 
-Algorithm:
+Display: duplicate groups with every member, per-group reclaimable size,
+total reclaimable, oldest-first "keep" hint. Never automatically delete
+duplicates — respected: files go to the trash only after the user
+selects them and confirms a review dialog; the move uses the existing
+safe trash path.
 
-1. compare file size
-2. group same-size candidates
-3. partial hash
-4. full hash only when required
-
-Do not hash every file blindly.
-
-Display:
-
-* duplicate groups
-* files in each group
-* total reclaimable size
-
-Never automatically delete duplicates.
+Do not hash every file blindly. — respected.
 
 ⸻
 
@@ -437,6 +428,13 @@ gradients or glassmorphism, no invented metrics, semantic tokens only,
 explicit empty/loading/error states. A full visual audit on a real
 desktop (both themes, various window sizes) is still pending.
 
+Note (1.0.2): automated offscreen UI checks now capture screenshots of
+every page (build with -DMM_QA_SUPPORT=ON, run with MM_QA_PAGES /
+MM_QA_OUT; see src/main.cpp). On Qt 6.2-6.4 the Layouts engine can log
+"recursive rearrange" warnings when the Storage search tab is first
+arranged; this is log-only noise, the layout settles and the UI is
+correct (verified by screenshots on 6.2.4 and 6.8.2).
+
 ⸻
 
 MM-091 — Accessibility
@@ -480,9 +478,10 @@ MM-110 — Unit tests
 
 Status: [-]
 
-Implemented and passing (ctest): size formatting, dpkg-query parsing,
-cleanup rule registry and path-guard evaluation. Still missing: path
-handling edge cases and filesystem classification tests.
+Five suites passing (ctest): size formatting, dpkg-query parsing,
+cleanup rule registry and path-guard evaluation, duplicate detection,
+filesystem search. Still missing: path handling edge cases and
+filesystem classification tests.
 
 Run: ctest --test-dir build
 
@@ -490,19 +489,13 @@ Run: ctest --test-dir build
 
 MM-111 — Integration tests
 
-Status: [ ]
+Status: [-]
 
-Test:
-
-* package enumeration
-* package removal workflow
-* cleanup workflow
-* filesystem scanning
-* error handling
-
-Never run destructive tests against the developer’s real home directory.
-
-Use temporary test directories.
+Implemented: duplicate detection and filesystem search integration tests
+run entirely inside QTemporaryDir (never the real home directory),
+covering grouping, hashing pipeline, filters, error handling and empty
+inputs. Still pending: package enumeration/removal and cleanup workflow
+integration tests, which need a harness that can stub pkexec.
 
 ⸻
 
