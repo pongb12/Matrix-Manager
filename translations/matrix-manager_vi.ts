@@ -299,14 +299,155 @@
   <context>
     <name>DuplicatesPage</name>
     <message>
-      <location filename="qml/pages/DuplicatesPage.qml" line="24" />
-      <source>Duplicate file search is not implemented yet</source>
-      <translation>Tính năng tìm tệp trùng chưa được triển khai</translation>
+      <location filename="qml/pages/DuplicatesPage.qml" line="276" />
+      <source>  · oldest</source>
+      <translation>  · cũ nhất</translation>
     </message>
     <message>
-      <location filename="qml/pages/DuplicatesPage.qml" line="30" />
-      <source>Open Large Files</source>
-      <translation>Mở Tệp lớn</translation>
+      <location filename="qml/pages/DuplicatesPage.qml" line="412" />
+      <location filename="qml/pages/DuplicatesPage.qml" line="417" />
+      <source> files</source>
+      <translation> tệp</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="45" />
+      <source> files checked</source>
+      <translation> tệp đã kiểm tra</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="233" />
+      <source>%1 copies · %2 each</source>
+      <translation>%1 bản · %2 mỗi bản</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="328" />
+      <source>%1 file(s) selected</source>
+      <translation>Đã chọn %1 tệp</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="203" />
+      <source>%1 groups · %2 reclaimable</source>
+      <translation>%1 nhóm · có thể thu hồi %2</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="239" />
+      <source>%1 reclaimable</source>
+      <translation>có thể thu hồi %1</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="193" />
+      <source>Cancel scan</source>
+      <translation>Hủy quét</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="360" />
+      <source>Choose a directory and press Scan. Files are compared by size first and hashed only when needed.</source>
+      <translation>Chọn thư mục và nhấn Quét. Các tệp được so sánh theo dung lượng trước và chỉ được băm khi cần.</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="416" />
+      <source>Could not move %1 to the trash</source>
+      <translation>Không thể chuyển %1 vào thùng rác</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="442" />
+      <source>Duplicate scan failed</source>
+      <translation>Quét tệp trùng thất bại</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="112" />
+      <source>Duplicates</source>
+      <translation>Tệp trùng</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="336" />
+      <source>Estimated reclaimable space: %1</source>
+      <translation>Dung lượng có thể thu hồi: %1</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="370" />
+      <source>Every file compared here has a unique content hash.</source>
+      <translation>Mọi tệp được so sánh tại đây đều có mã băm nội dung riêng.</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="113" />
+      <source>Find duplicate files — grouped by content, nothing is deleted automatically</source>
+      <translation>Tìm tệp trùng lặp — nhóm theo nội dung, không xóa gì tự động</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="166" />
+      <source>Home</source>
+      <translation>Thư mục nhà</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="142" />
+      <source>Look in</source>
+      <translation>Tìm trong</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="390" />
+      <source>Move %1 file(s) to trash?</source>
+      <translation>Chuyển %1 tệp vào thùng rác?</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="396" />
+      <source>Move to trash</source>
+      <translation>Chuyển vào thùng rác</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="346" />
+      <source>Move to trash…</source>
+      <translation>Chuyển vào thùng rác…</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="411" />
+      <source>Moved to trash: %1</source>
+      <translation>Đã chuyển vào thùng rác: %1</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="359" />
+      <source>No duplicate groups yet</source>
+      <translation>Chưa có nhóm tệp trùng nào</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="369" />
+      <source>No duplicates found in this location</source>
+      <translation>Không tìm thấy tệp trùng trong vị trí này</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="327" />
+      <source>Nothing selected</source>
+      <translation>Chưa chọn gì</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="458" />
+      <source>OK</source>
+      <translation>OK</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="171" />
+      <source>Scan for duplicates</source>
+      <translation>Quét tệp trùng</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="171" />
+      <source>Scanning…</source>
+      <translation>Đang quét…</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="247" />
+      <source>Select duplicates</source>
+      <translation>Chọn tệp trùng</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="335" />
+      <source>Select files to move to the trash, then review the list before confirming. The oldest file in each group is a good keep candidate.</source>
+      <translation>Chọn tệp để chuyển vào thùng rác, sau đó xem lại danh sách trước khi xác nhận. Tệp cũ nhất trong mỗi nhóm là lựa chọn giữ phù hợp.</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/DuplicatesPage.qml" line="392" />
+      <source>Selected files go to the system trash. You can restore them until the trash is emptied.</source>
+      <translation>Các tệp đã chọn sẽ vào thùng rác hệ thống. Bạn có thể khôi phục chúng cho đến khi thùng rác được dọn.</translation>
     </message>
   </context>
   <context>
@@ -834,127 +975,240 @@
   <context>
     <name>StoragePage</name>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="469" />
+      <location filename="qml/pages/StoragePage.qml" line="528" />
       <source>  → link</source>
       <translation>  → liên kết</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="61" />
+      <location filename="qml/pages/StoragePage.qml" line="71" />
+      <location filename="qml/pages/StoragePage.qml" line="93" />
       <source> files checked</source>
       <translation> tệp đã kiểm tra</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="533" />
+      <location filename="qml/pages/StoragePage.qml" line="592" />
       <source> · %1 inaccessible entries</source>
       <translation> · %1 mục không truy cập được</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="531" />
+      <location filename="qml/pages/StoragePage.qml" line="590" />
+      <location filename="qml/pages/StoragePage.qml" line="840" />
       <source> · cancelled</source>
       <translation> · đã hủy</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="189" />
+      <location filename="qml/pages/StoragePage.qml" line="837" />
+      <source> · results limited to the first %1</source>
+      <translation> · giới hạn trong %1 kết quả đầu tiên</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="243" />
       <source>%1 free of %2</source>
       <translation>%1 còn trống trên %2</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="535" />
+      <location filename="qml/pages/StoragePage.qml" line="834" />
+      <source>%1 matches</source>
+      <translation>%1 kết quả</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="594" />
       <source>%1 total · %2 files%3%4</source>
       <translation>Tổng %1 · %2 tệp%3%4</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="188" />
+      <location filename="qml/pages/StoragePage.qml" line="242" />
       <source>%1 used</source>
       <translation>Đã dùng %1</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="116" />
+      <location filename="qml/pages/StoragePage.qml" line="821" />
+      <source>Adjust the filters or search another location.</source>
+      <translation>Hãy điều chỉnh bộ lọc hoặc tìm ở vị trí khác.</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="163" />
       <source>Cache</source>
       <translation>Bộ nhớ đệm</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="358" />
+      <location filename="qml/pages/StoragePage.qml" line="414" />
+      <location filename="qml/pages/StoragePage.qml" line="737" />
       <source>Cancel scan</source>
       <translation>Hủy quét</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="516" />
+      <location filename="qml/pages/StoragePage.qml" line="575" />
       <source>Choose a directory above and press Scan. Matrix Manager never scans anything on its own — scanning starts only when you ask for it.</source>
       <translation>Chọn thư mục phía trên và nhấn Quét. Matrix Manager không bao giờ tự quét bất cứ thứ gì — việc quét chỉ bắt đầu khi bạn yêu cầu.</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="515" />
+      <location filename="qml/pages/StoragePage.qml" line="792" />
+      <source>Could not open %1</source>
+      <translation>Không thể mở %1</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="800" />
+      <source>Could not open folder</source>
+      <translation>Không thể mở thư mục</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="574" />
+      <location filename="qml/pages/StoragePage.qml" line="892" />
       <source>Directory not scanned yet</source>
       <translation>Thư mục chưa được quét</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="289" />
+      <location filename="qml/pages/StoragePage.qml" line="184" />
+      <location filename="qml/pages/StoragePage.qml" line="345" />
       <source>Directory usage</source>
       <translation>Mức sử dụng thư mục</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="131" />
+      <location filename="qml/pages/StoragePage.qml" line="866" />
+      <source>Each block is a subdirectory; area is proportional to size. Click to enter, hover for details.</source>
+      <translation>Mỗi khối là một thư mục con; diện tích tỷ lệ với dung lượng. Nhấp để đi vào, di chuột để xem chi tiết.</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="178" />
       <source>Explore volumes and directory usage — scanning runs only on your request</source>
       <translation>Khám phá phân vùng và mức sử dụng thư mục — chỉ quét khi bạn yêu cầu</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="395" />
+      <location filename="qml/pages/StoragePage.qml" line="672" />
+      <source>Extension</source>
+      <translation>Phần mở rộng</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="451" />
       <source>Files</source>
       <translation>Tệp</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="211" />
+      <location filename="qml/pages/StoragePage.qml" line="266" />
       <source>Home folder breakdown</source>
       <translation>Phân tích thư mục nhà</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="375" />
+      <location filename="qml/pages/StoragePage.qml" line="620" />
+      <source>Look in</source>
+      <translation>Tìm trong</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="705" />
+      <source>Max size (MB)</source>
+      <translation>Tối đa (MB)</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="688" />
+      <source>Min size (MB)</source>
+      <translation>Tối thiểu (MB)</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="431" />
       <source>Name</source>
       <translation>Tên</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="584" />
+      <location filename="qml/pages/StoragePage.qml" line="656" />
+      <source>Name contains</source>
+      <translation>Tên chứa</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="820" />
+      <source>No files matched the filters</source>
+      <translation>Không có tệp nào khớp bộ lọc</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="810" />
+      <source>No matches yet</source>
+      <translation>Chưa có kết quả nào</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="946" />
       <source>OK</source>
       <translation>OK</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="120" />
+      <location filename="qml/pages/StoragePage.qml" line="789" />
+      <source>Open file</source>
+      <translation>Mở tệp</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="167" />
       <source>Other</source>
       <translation>Khác</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="316" />
+      <location filename="qml/pages/StoragePage.qml" line="372" />
       <source>Path</source>
       <translation>Đường dẫn</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="305" />
+      <location filename="qml/pages/StoragePage.qml" line="897" />
+      <source>Prefer plain numbers? The Directory usage tab shows the same data as a table — the accessible alternative to this view.</source>
+      <translation>Thích xem dạng số? Tab Mức sử dụng thư mục hiển thị cùng dữ liệu dưới dạng bảng — lựa chọn thay thế dễ tiếp cận cho khung nhìn này.</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="361" />
       <source>Scan</source>
       <translation>Quét</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="568" />
+      <location filename="qml/pages/StoragePage.qml" line="930" />
       <source>Scan failed</source>
       <translation>Quét thất bại</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="305" />
+      <location filename="qml/pages/StoragePage.qml" line="361" />
+      <location filename="qml/pages/StoragePage.qml" line="643" />
       <source>Scanning…</source>
       <translation>Đang quét…</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="409" />
+      <location filename="qml/pages/StoragePage.qml" line="184" />
+      <location filename="qml/pages/StoragePage.qml" line="643" />
+      <source>Search</source>
+      <translation>Tìm kiếm</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="105" />
+      <source>Search cancelled</source>
+      <translation>Đã hủy tìm kiếm</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="109" />
+      <source>Search failed</source>
+      <translation>Tìm kiếm thất bại</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="797" />
+      <source>Show in folder</source>
+      <translation>Hiện trong thư mục</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="465" />
       <source>Size</source>
       <translation>Dung lượng</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="130" />
+      <location filename="qml/pages/StoragePage.qml" line="177" />
       <source>Storage</source>
       <translation>Bộ lưu trữ</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="296" />
+      <location filename="qml/pages/StoragePage.qml" line="184" />
+      <location filename="qml/pages/StoragePage.qml" line="860" />
+      <source>Treemap</source>
+      <translation>Sơ đồ khối</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="811" />
+      <source>Type a name fragment or set a size range, then press Search. The scan walks the chosen directory only.</source>
+      <translation>Nhập một phần tên hoặc đặt khoảng dung lượng, sau đó nhấn Tìm kiếm. Quét chỉ đi qua thư mục đã chọn.</translation>
+    </message>
+    <message>
+      <location filename="qml/pages/StoragePage.qml" line="352" />
       <source>Up</source>
       <translation>Lên</translation>
     </message>

@@ -12,6 +12,8 @@
 #include "filesystem/LargeFileService.h"
 #include "filesystem/StorageService.h"
 #include "filesystem/DirectoryScanner.h"
+#include "filesystem/DuplicateScanner.h"
+#include "filesystem/FileSearcher.h"
 #include "packages/PackageService.h"
 #include "cleanup/CleanupService.h"
 
@@ -72,6 +74,10 @@ int main(int argc, char *argv[])
                                  "TranslationService", TranslationService::instance());
     qmlRegisterType<DirectoryScanner>("MatrixManager.Core", 1, 0,
                                       "DirectoryScanner");
+    qmlRegisterType<DuplicateScanner>("MatrixManager.Core", 1, 0,
+                                      "DuplicateScanner");
+    qmlRegisterType<FileSearcher>("MatrixManager.Core", 1, 0,
+                                  "FileSearcher");
 
     QQmlApplicationEngine engine;
     // QML modules share RESOURCE_PREFIX /qml (see CMakeLists.txt).
@@ -94,6 +100,15 @@ int main(int argc, char *argv[])
         engine.rootContext()->setContextProperty(QStringLiteral("qaLog"), new QaLog());
         QFile::remove(QStringLiteral("/tmp/mm_qa.log"));
     }
+    const QString qaDup = qEnvironmentVariable("MM_QA_DUP_SCAN");
+    if (!qaDup.isEmpty())
+        engine.rootContext()->setContextProperty(QStringLiteral("qaDupScanPath"), qaDup);
+    const QString qaMode = qEnvironmentVariable("MM_QA_STORAGE_MODE");
+    if (!qaMode.isEmpty())
+        engine.rootContext()->setContextProperty(QStringLiteral("qaStorageMode"), qaMode.toInt());
+    const QString qaSearch = qEnvironmentVariable("MM_QA_SEARCH_NAME");
+    if (!qaSearch.isEmpty())
+        engine.rootContext()->setContextProperty(QStringLiteral("qaSearchName"), qaSearch);
 #else
     Q_UNUSED(qaScan);
 #endif

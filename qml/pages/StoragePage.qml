@@ -24,11 +24,21 @@ Page {
     property var lastScanRoot: ""
     property bool sortByName: false
     property bool sortAscending: false
+    property var searchEntries: []
+    property var searchSummary: ({})
 
     Component.onCompleted: {
         // QA hook: auto-start a scan when requested (automated UI checks).
         if (typeof qaScanPath !== "undefined" && qaScanPath !== "")
             page.startScan(qaScanPath)
+        if (typeof qaStorageMode !== "undefined") {
+            modeSelector.currentIndex = qaStorageMode
+            if (qaStorageMode === 1) {
+                searchName.text = typeof qaSearchName !== "undefined"
+                                  ? qaSearchName : ""
+                startSearch()
+            }
+        }
     }
 
     readonly property bool isHomeScan: lastScanRoot === StorageService.homePath()
@@ -73,6 +83,43 @@ Page {
             scanErrorDialog.message = message
             scanErrorDialog.open()
         }
+    }
+
+    FileSearcher {
+        id: fileSearcher
+
+        onProgressChanged: (filesSeen) => {
+            searchProgress.text = SystemInfo.formatCount(filesSeen)
+                                  + qsTr(" files checked")
+        }
+
+        onPartialResults: (rootPath, results) => {
+            if (rootPath === searchRoot.text)
+                page.searchEntries = results
+        }
+
+        onFinished: (rootPath, results, finishedSummary) => {
+            page.searchEntries = results
+            page.searchSummary = finishedSummary
+            if (finishedSummary.cancelled === true)
+                appWindow.showToast(qsTr("Search cancelled"), "neutral")
+        }
+
+        onFailed: (rootPath, message) => {
+            appWindow.showToast(qsTr("Search failed") + ": " + message, "danger")
+        }
+    }
+
+    function startSearch() {
+        // Empty fields mean "no limit"; MB fields are converted to bytes.
+        const min = searchMin.text.trim() === "" ? 0
+                  : Number(searchMin.text) * 1024 * 1024
+        const max = searchMax.text.trim() === "" ? 0
+                  : Number(searchMax.text) * 1024 * 1024
+        page.searchEntries = []
+        page.searchSummary = {}
+        fileSearcher.start(searchRoot.text, searchName.text,
+                           searchExt.text, min, max)
     }
 
     function sortEntries() {
@@ -131,6 +178,12 @@ Page {
             subtitle: qsTr("Explore volumes and directory usage — scanning runs only on your request")
         }
 
+        MSegmented {
+            id: modeSelector
+            Layout.fillWidth: true
+            model: [qsTr("Directory usage"), qsTr("Search"), qsTr("Treemap")]
+        }
+
         ScrollView {
             id: pageScroll
             Layout.fillWidth: true
@@ -145,6 +198,7 @@ Page {
 
                 // ------------------------------------------------ volumes
                 Flow {
+                    visible: modeSelector.currentIndex === 0
                     spacing: Theme.spacingMD
                     Layout.fillWidth: true
 
@@ -197,7 +251,8 @@ Page {
 
                 // ------------------------------------- category overview
                 MCard {
-                    visible: page.isHomeScan && page.categoryRows().length > 0
+                    visible: modeSelector.currentIndex === 0
+                             && page.isHomeScan && page.categoryRows().length > 0
                     Layout.fillWidth: true
                     implicitHeight: categoryContent.implicitHeight + Theme.spacingLG * 2
 
@@ -272,6 +327,7 @@ Page {
 
                 // ----------------------------------------- directory tool
                 MCard {
+                    visible: modeSelector.currentIndex === 0
                     Layout.fillWidth: true
                     implicitHeight: explorer.implicitHeight + Theme.spacingLG * 2
 
@@ -540,6 +596,309 @@ Page {
                                     SystemInfo.formatCount(page.summary.totalFiles || 0)).arg(
                                     errors).arg(cancelled)
                             }
+                        }
+                    }
+                }
+
+                // ============================================ search (MM-031)
+                MCard {
+                    visible: modeSelector.currentIndex === 1
+                    Layout.fillWidth: true
+                    implicitHeight: searchCard.implicitHeight + Theme.spacingLG * 2
+
+                    ColumnLayout {
+                        id: searchCard
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingLG
+                        spacing: Theme.spacingMD
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.spacingSM
+
+                            Text {
+                                text: qsTr("Look in")
+                                font.pixelSize: Theme.fontSizeMD
+                                color: Theme.textMuted
+                            }
+                            TextField {
+                                id: searchRoot
+                                Layout.fillWidth: true
+                                text: StorageService.homePath()
+                                font.pixelSize: Theme.fontSizeSM
+                                font.family: Theme.monoFamily
+                                selectByMouse: true
+                                color: Theme.textPrimary
+
+                                background: Rectangle {
+                                    radius: Theme.radiusMD
+                                    color: Theme.surfaceSunken
+                                    border.width: searchRoot.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                    border.color: searchRoot.activeFocus ? Theme.focus : Theme.border
+                                }
+
+                                onAccepted: page.startSearch()
+                            }
+                            MButton {
+                                text: fileSearcher.running ? qsTr("Scanning…") : qsTr("Search")
+                                enabled: !fileSearcher.running
+                                onClicked: page.startSearch()
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Theme.spacingSM
+
+                            TextField {
+                                id: searchName
+                                Layout.fillWidth: true
+                                placeholderText: qsTr("Name contains")
+                                font.pixelSize: Theme.fontSizeSM
+                                color: Theme.textPrimary
+                                placeholderTextColor: Theme.textMuted
+                                selectByMouse: true
+
+                                background: Rectangle {
+                                    radius: Theme.radiusMD
+                                    color: Theme.surfaceSunken
+                                    border.width: searchName.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                    border.color: searchName.activeFocus ? Theme.focus : Theme.border
+                                }
+                            }
+                            TextField {
+                                id: searchExt
+                                Layout.preferredWidth: 120
+                                placeholderText: qsTr("Extension")
+                                font.pixelSize: Theme.fontSizeSM
+                                color: Theme.textPrimary
+                                placeholderTextColor: Theme.textMuted
+                                selectByMouse: true
+
+                                background: Rectangle {
+                                    radius: Theme.radiusMD
+                                    color: Theme.surfaceSunken
+                                    border.width: searchExt.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                    border.color: searchExt.activeFocus ? Theme.focus : Theme.border
+                                }
+                            }
+                            TextField {
+                                id: searchMin
+                                Layout.preferredWidth: 140
+                                placeholderText: qsTr("Min size (MB)")
+                                font.pixelSize: Theme.fontSizeSM
+                                color: Theme.textPrimary
+                                placeholderTextColor: Theme.textMuted
+                                selectByMouse: true
+                                validator: IntValidator { bottom: 0 }
+
+                                background: Rectangle {
+                                    radius: Theme.radiusMD
+                                    color: Theme.surfaceSunken
+                                    border.width: searchMin.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                    border.color: searchMin.activeFocus ? Theme.focus : Theme.border
+                                }
+                            }
+                            TextField {
+                                id: searchMax
+                                Layout.preferredWidth: 140
+                                placeholderText: qsTr("Max size (MB)")
+                                font.pixelSize: Theme.fontSizeSM
+                                color: Theme.textPrimary
+                                placeholderTextColor: Theme.textMuted
+                                selectByMouse: true
+                                validator: IntValidator { bottom: 0 }
+
+                                background: Rectangle {
+                                    radius: Theme.radiusMD
+                                    color: Theme.surfaceSunken
+                                    border.width: searchMax.activeFocus ? Theme.focusWidth : Theme.borderWidth
+                                    border.color: searchMax.activeFocus ? Theme.focus : Theme.border
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            visible: fileSearcher.running
+                            Layout.fillWidth: true
+                            spacing: Theme.spacingMD
+
+                            MProgressBar {
+                                Layout.preferredWidth: 180
+                                indeterminate: true
+                            }
+                            Text {
+                                id: searchProgress
+                                font.pixelSize: Theme.fontSizeSM
+                                font.family: Theme.monoFamily
+                                color: Theme.textSecondary
+                            }
+                            MSecondaryButton {
+                                text: qsTr("Cancel scan")
+                                onClicked: fileSearcher.cancel()
+                            }
+                        }
+
+                        Rectangle { Layout.fillWidth: true; height: 1; color: Theme.border }
+
+                        ListView {
+                            id: searchResults
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: count === 0 ? 170
+                                : Math.min(420, Math.max(count * 44, 60))
+                            model: page.searchEntries
+                            clip: true
+                            spacing: 0
+
+                            delegate: RowLayout {
+                                width: searchResults.width
+                                height: 44
+                                spacing: Theme.spacingMD
+
+                                ColumnLayout {
+                                    spacing: 1
+                                    Layout.fillWidth: true
+
+                                    Text {
+                                        text: modelData.name
+                                        font.pixelSize: Theme.fontSizeMD
+                                        color: Theme.textPrimary
+                                        elide: Text.ElideMiddle
+                                        Layout.fillWidth: true
+                                    }
+                                    Text {
+                                        text: modelData.path
+                                        font.pixelSize: Theme.fontSizeXS
+                                        font.family: Theme.monoFamily
+                                        color: Theme.textMuted
+                                        elide: Text.ElideMiddle
+                                        Layout.fillWidth: true
+                                    }
+                                }
+
+                                Text {
+                                    text: SystemInfo.formatBytes(modelData.size)
+                                    font.pixelSize: Theme.fontSizeMD
+                                    font.family: Theme.monoFamily
+                                    color: Theme.textPrimary
+                                    horizontalAlignment: Text.AlignRight
+                                }
+
+                                MIconButton {
+                                    glyph: "↗"
+                                    tooltip: qsTr("Open file")
+                                    onClicked: {
+                                        if (!LargeFileService.openFile(modelData.path))
+                                            appWindow.showToast(qsTr("Could not open %1").arg(modelData.name), "danger")
+                                    }
+                                }
+                                MIconButton {
+                                    glyph: "⊞"
+                                    tooltip: qsTr("Show in folder")
+                                    onClicked: {
+                                        if (!LargeFileService.showInFolder(modelData.path))
+                                            appWindow.showToast(qsTr("Could not open folder"), "danger")
+                                    }
+                                }
+                            }
+
+                            MEmptyState {
+                                anchors.centerIn: parent
+                                width: parent.width - 48
+                                visible: searchResults.count === 0 && !fileSearcher.running
+                                         && page.searchSummary.count === undefined
+                                title: qsTr("No matches yet")
+                                description: qsTr("Type a name fragment or set a size range, then press Search. The scan walks the chosen directory only.")
+                                glyph: "⌕"
+                            }
+                            MEmptyState {
+                                anchors.centerIn: parent
+                                width: parent.width - 48
+                                visible: !fileSearcher.running
+                                         && page.searchSummary.count === 0
+                                         && page.searchSummary.cancelled !== true
+                                title: qsTr("No files matched the filters")
+                                description: qsTr("Adjust the filters or search another location.")
+                                glyph: "⌕"
+                            }
+                        }
+
+                        Text {
+                            visible: page.searchSummary.count !== undefined
+                            font.pixelSize: Theme.fontSizeSM
+                            font.family: Theme.monoFamily
+                            color: Theme.textMuted
+                            text: {
+                                if (page.searchSummary.count === undefined)
+                                    return ""
+                                let line = qsTr("%1 matches").arg(
+                                    SystemInfo.formatCount(page.searchSummary.count || 0))
+                                if (page.searchSummary.truncated === true)
+                                    line += qsTr(" · results limited to the first %1").arg(
+                                        SystemInfo.formatCount(page.searchSummary.count))
+                                if (page.searchSummary.cancelled === true)
+                                    line += qsTr(" · cancelled")
+                                return line
+                            }
+                        }
+                    }
+                }
+
+                // ============================================ treemap (MM-023)
+                MCard {
+                    visible: modeSelector.currentIndex === 2
+                    Layout.fillWidth: true
+                    implicitHeight: treemapCard.implicitHeight + Theme.spacingLG * 2
+
+                    ColumnLayout {
+                        id: treemapCard
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingLG
+                        spacing: Theme.spacingMD
+
+                        Text {
+                            text: qsTr("Treemap")
+                            font.pixelSize: Theme.fontSizeLG
+                            font.weight: Font.DemiBold
+                            color: Theme.textPrimary
+                        }
+                        Text {
+                            text: qsTr("Each block is a subdirectory; area is proportional to size. Click to enter, hover for details.")
+                            font.pixelSize: Theme.fontSizeXS
+                            color: Theme.textMuted
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
+                        MMTreemap {
+                            Layout.fillWidth: true
+                            entries: page.entries
+                            onActivate: (path) => {
+                                page.startScan(path)
+                                modeSelector.currentIndex = 0
+                            }
+                            onHoverInfo: (text) => treemapHover.text = text
+                        }
+                        Text {
+                            id: treemapHover
+                            font.pixelSize: Theme.fontSizeSM
+                            font.family: Theme.monoFamily
+                            color: Theme.textSecondary
+                            elide: Text.ElideMiddle
+                            Layout.fillWidth: true
+                            visible: text !== ""
+                        }
+                        Text {
+                            visible: page.entries.length === 0
+                            text: qsTr("Directory not scanned yet")
+                            font.pixelSize: Theme.fontSizeMD
+                            color: Theme.textMuted
+                        }
+                        Text {
+                            text: qsTr("Prefer plain numbers? The Directory usage tab shows the same data as a table — the accessible alternative to this view.")
+                            font.pixelSize: Theme.fontSizeXS
+                            color: Theme.textMuted
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
                         }
                     }
                 }

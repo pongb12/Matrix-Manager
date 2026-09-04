@@ -160,9 +160,7 @@ ApplicationWindow {
             ApplicationsPage {}
             CleanupPage {}
             LargeFilesPage {}
-            DuplicatesPage {
-                onRequestNavigate: (pageId) => appWindow.navigate(pageId)
-            }
+            DuplicatesPage {}
             SettingsPage {}
         }
     }

@@ -33,6 +33,8 @@ qt_add_executable(matrix-manager
     src/filesystem/FileWalker.cpp
     src/filesystem/StorageService.cpp
     src/filesystem/DirectoryScanner.cpp
+    src/filesystem/DuplicateScanner.cpp
+    src/filesystem/FileSearcher.cpp
     src/filesystem/LargeFileService.cpp
     src/packages/PackageModel.cpp
     src/packages/PackageService.cpp
@@ -52,6 +54,8 @@ add_library(matrix_core STATIC
     src/filesystem/FileWalker.cpp
     src/filesystem/StorageService.cpp
     src/filesystem/DirectoryScanner.cpp
+    src/filesystem/DuplicateScanner.cpp
+    src/filesystem/FileSearcher.cpp
     src/filesystem/LargeFileService.cpp
     src/packages/PackageModel.cpp
     src/packages/PackageService.cpp
@@ -127,6 +131,7 @@ qt_add_qml_module(mm_components
         qml/components/MIconButton.qml
         qml/components/MListItem.qml
         qml/components/MLoadingState.qml
+        qml/components/MMTreemap.qml
         qml/components/MPageHeader.qml
         qml/components/MProgressBar.qml
         qml/components/MSearchField.qml
