@@ -4,6 +4,9 @@ build-*/
 cmake-build-*/
 out/
 
+# CPack staging area
+_CPack_Packages/
+
 # CMake user files
 CMakeLists.txt.user
 CMakeCache.txt

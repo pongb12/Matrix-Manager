@@ -2,6 +2,7 @@
 #include "FileWalker.h"
 #include "core/SettingsService.h"
 
+#include <QByteArray>
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QDir>
@@ -40,7 +41,10 @@ QByteArray hashFile(const QString &path)
         const qint64 read = file.read(buffer, kHashChunkSize);
         if (read < 0)
             return {};
-        hash.addData(buffer, static_cast<int>(read));
+        // QByteArray overload is the only addData() form that exists and is
+        // not deprecated across Qt 6.2 (no QByteArrayView overload yet) and
+        // Qt 6.4+ (char* overload deprecated there). fromRawData is zero-copy.
+        hash.addData(QByteArray::fromRawData(buffer, read));
     }
     return hash.result();
 }
