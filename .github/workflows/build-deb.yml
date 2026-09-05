@@ -1,0 +1,94 @@
+# Matrix Manager — automated .deb build + release.
+#
+# Runner: ubuntu-24.04 (noble). Mint 22 is built on noble, and noble's apt
+# ships Qt 6.4.2 — the same Qt minor the app is developed against on Mint 22,
+# so the produced .deb is binary-compatible with the target audience.
+#
+# Triggers:
+#   - push to main                -> build + test + artifact (no release)
+#   - push a tag v1.0.3-3.1 etc.  -> build + test + GitHub Release with .deb
+#   - workflow_dispatch           -> manual run from the Actions tab
+#
+# Notes:
+#   - translations/matrix-manager_vi.qm is committed, so lrelease/lupdate are
+#     NOT needed in CI.
+#   - The unit tests run with QT_QPA_PLATFORM=offscreen (shipped in
+#     libqt6gui6), no Xvfb required.
+#   - Release publishing uses the built-in GITHUB_TOKEN (contents: write).
+
+name: build-deb
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build, test, package (.deb)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            qt6-base-dev \
+            qt6-declarative-dev \
+            qt6-svg-dev \
+            libgl1-mesa-dev \
+            ninja-build \
+            qml6-module-qtquick \
+            qml6-module-qtquick-controls \
+            qml6-module-qtquick-templates \
+            qml6-module-qtquick-layouts \
+            qml6-module-qtquick-window \
+            qml6-module-qtquick-dialogs \
+            qml6-module-qt-labs-platform \
+            qml6-module-qtqml-workerscript
+
+      - name: Configure (Release, Ninja)
+        run: >
+          cmake -G Ninja -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -S .
+
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+
+      - name: Unit tests (offscreen)
+        run: ctest --test-dir build --output-on-failure
+        env:
+          QT_QPA_PLATFORM: offscreen
+
+      - name: Package .deb
+        run: |
+          cd build
+          cpack -G DEB
+          cd ..
+          ls -la build/*.deb
+
+      - name: Upload .deb artifact (every run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: matrix-manager-deb
+          path: build/*.deb
+          if-no-files-found: error
+
+      - name: Create GitHub Release with .deb (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DEB=$(ls build/*.deb)
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Matrix Manager $GITHUB_REF_NAME" \
+            --generate-notes \
+            "$DEB"

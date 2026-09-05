@@ -639,3 +639,12 @@ Known limitations kept honest:
   centre and is clamped on screen. Target-step cards use auto ink so the
   header icon is visible in both themes (was white-on-white in light
   mode).
+
+## 1.0.3-3+ci — GitHub Actions automation
+- Added `.github/workflows/build-deb.yml`: on every push to `main` it builds
+  with Release + Ninja, runs the unit tests offscreen, packages the .deb with
+  CPack and uploads it as a workflow artifact. Pushing a `v*` tag (e.g.
+  `v1.0.3-3.1`) additionally creates a GitHub Release with the .deb attached.
+- Runner is `ubuntu-24.04` (noble) with apt Qt 6.4.2 — the same Qt minor as
+  Mint 22, so CI-built packages match the target runtime. The committed
+  `matrix-manager_vi.qm` means no linguist tools are required in CI.
