@@ -603,3 +603,39 @@ Known limitations kept honest:
 - The folder picker on Qt 6.2 uses the native dialog helper; on minimal
   desktops without one the Browse button may do nothing on that floor
   version (6.3+ is unaffected).
+
+## Patch release notes (1.0.3-2)
+
+- .deb installs showed no icons: the SVG image-format plugin (dlopened by
+  the icon decoder, invisible to shlibdeps) was missing from the runtime
+  Depends. Qt6::Svg is now referenced from the binary, libqt6svg6 is an
+  explicit dependency and a startup warning names the package to install.
+- Guided tour fixes: the sidebar step card could fly off-window; the
+  spotlight only located its target once (mid page-enter animation) and
+  is now re-located while the tour is open; a failing prepare() no longer
+  aborts the step; out-of-view targets (Settings → Guide) are scrolled
+  into view first.
+- Applications are grouped by detected package category: filter chips
+  with counts, section headers with aggregate count/size, search also
+  matches the section name (tst_packagemodel added).
+
+## Patch release notes (1.0.3-3)
+
+- Sidebar navigation rows sagged: the Basic style's 12px vertical padding
+  squeezed the custom content layout, pushing icon + label below the row
+  centre so they appeared to overlap the next section (worse with tall
+  Vietnamese diacritics). Rows now own the full height, are 40px tall
+  with 3px spacing, and the sliding indicator stays aligned. MButton /
+  MSecondaryButton received the same padding fix, 15px icons and explicit
+  vertical centring, so button ink no longer spills past the border.
+- Large Files custom threshold SpinBox clipped its value to one digit
+  between the stepper buttons ("500" rendered as "0"); widened so all
+  five digits fit.
+- Storage mount cards truncated both legends on narrow cards; the total
+  (already shown in the card header) is no longer repeated in the legend.
+- Guided tour intro/outro cards are now floating: no fill, light ink on
+  the dimmed backdrop, dark mode outlined white with a green inner
+  hairline, light mode outlined green; the card sits slightly above
+  centre and is clamped on screen. Target-step cards use auto ink so the
+  header icon is visible in both themes (was white-on-white in light
+  mode).

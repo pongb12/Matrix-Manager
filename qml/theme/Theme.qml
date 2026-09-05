@@ -41,7 +41,16 @@ QtObject {
         danger:          "#C75450",
         dangerHover:     "#D46561",
         focus:           "#7BBFA2",
-        overlay:         "#000000"
+        overlay:         "#000000",
+
+        // Ink and lines used ABOVE the dimmed backdrop (guided tour floating
+        // cards). The dim layer darkens the UI in both themes, so these stay
+        // light even in the light palette.
+        overlayText:       "#E6E9EC",
+        overlayTextMuted:  "#A7AEB5",
+        overlayBorder:     "#FFFFFF",
+        overlayAccent:     "#4C9E7F",
+        overlayHover:      "#2A3037"
     })
 
     readonly property var _lightPalette: ({
@@ -63,7 +72,16 @@ QtObject {
         danger:          "#B03A36",
         dangerHover:     "#99322F",
         focus:           "#2E7D5F",
-        overlay:         "#000000"
+        overlay:         "#000000",
+
+        // Over-dim tokens: the light theme's normal ink is too dark to read
+        // on the dimmed backdrop, so floating surfaces flip to light ink.
+        // Border/accent follow the tour spec: green outline on light mode.
+        overlayText:       "#EDF0F2",
+        overlayTextMuted:  "#C6CCD1",
+        overlayBorder:     "#2E7D5F",
+        overlayAccent:     "#2E7D5F",
+        overlayHover:      "#3A4046"
     })
 
     readonly property var _p: dark ? _darkPalette : _lightPalette
@@ -87,6 +105,13 @@ QtObject {
     readonly property color dangerHover:     _p.dangerHover
     readonly property color focus:           _p.focus
     readonly property color overlay:         _p.overlay
+
+    // Ink/lines for floating surfaces above the dim layer (1.0.3-3).
+    readonly property color overlayText:       _p.overlayText
+    readonly property color overlayTextMuted:  _p.overlayTextMuted
+    readonly property color overlayBorder:     _p.overlayBorder
+    readonly property color overlayAccent:     _p.overlayAccent
+    readonly property color overlayHover:      _p.overlayHover
 
     // Category colours for storage classification (fixed, both themes).
     readonly property var categoryColors: [

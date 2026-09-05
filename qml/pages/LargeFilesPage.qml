@@ -178,7 +178,10 @@ Page {
                         from: 1
                         to: 99999
                         editable: true
-                        implicitWidth: 96
+                        // 96 left too little room between the stepper
+                        // buttons for the editable value ("500" clipped to
+                        // one digit); 136 keeps all five digits readable.
+                        implicitWidth: 136
                         font.pixelSize: Theme.fontSizeSM
                         onValueModified: page.applyCustomThreshold()
                     }

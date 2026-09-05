@@ -114,6 +114,9 @@ ApplicationWindow {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.topMargin: Theme.spacingSM
+                    // A little air between the sections keeps the icons and
+                    // labels from reading as one dense block (1.0.3-3).
+                    spacing: 3
                     model: appWindow.navModel
                     currentIndex: 0
                     keyNavigationWraps: true
@@ -136,7 +139,16 @@ ApplicationWindow {
                     delegate: ItemDelegate {
                         id: navDelegate
                         width: navList.width
-                        height: 38
+                        height: 40
+                        // Zero paddings: the Basic style default (12px all
+                        // round) left the custom RowLayout a height-24 box,
+                        // so the icon + label sagged below the row centre and
+                        // appeared to overlap the next section. The RowLayout
+                        // now owns the full height and centres itself.
+                        topPadding: 0
+                        bottomPadding: 0
+                        leftPadding: 0
+                        rightPadding: 0
                         highlighted: ListView.isCurrentItem
 
                         background: Rectangle {
@@ -154,8 +166,9 @@ ApplicationWindow {
 
                             MIcon {
                                 name: modelData.icon
-                                size: 17
+                                size: 16
                                 opacity: navDelegate.highlighted ? 1.0 : 0.75
+                                Layout.alignment: Qt.AlignVCenter
 
                                 Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
                             }
@@ -168,6 +181,7 @@ ApplicationWindow {
                                      : Theme.textSecondary
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignVCenter
                             }
                         }
 

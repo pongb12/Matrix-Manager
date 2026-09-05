@@ -14,6 +14,12 @@ Button {
     implicitWidth: Math.max(contentItem.implicitWidth + leftPadding + rightPadding, 96)
     leftPadding: Theme.spacingLG
     rightPadding: Theme.spacingLG
+    // The Basic style's default 12px vertical padding would squeeze the
+    // custom RowLayout into height-24 and push its contents below the
+    // centre line (worse with tall Vietnamese diacritics); zero them and
+    // let the RowLayout centre its own children in the full height.
+    topPadding: 0
+    bottomPadding: 0
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
 
@@ -26,7 +32,7 @@ Button {
         MIcon {
             name: control.iconName
             visible: control.iconName !== ""
-            size: 16
+            size: 15
             tint: "onaccent"
             Layout.alignment: Qt.AlignVCenter
         }
@@ -39,6 +45,7 @@ Button {
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             Layout.fillWidth: true
+            Layout.alignment: Qt.AlignVCenter
         }
     }
 

@@ -1303,9 +1303,9 @@
       <translation> · giới hạn trong %1 kết quả đầu tiên</translation>
     </message>
     <message>
-      <location filename="qml/pages/StoragePage.qml" line="262" />
-      <source>%1 free of %2</source>
-      <translation>%1 còn trống trên %2</translation>
+      <location filename="qml/pages/StoragePage.qml" line="266" />
+      <source>%1 free</source>
+      <translation>%1 còn trống</translation>
     </message>
     <message>
       <location filename="qml/pages/StoragePage.qml" line="940" />

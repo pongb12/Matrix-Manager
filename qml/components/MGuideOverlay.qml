@@ -39,6 +39,17 @@ Rectangle {
     readonly property bool running: visible
     signal closed()
 
+    // Intro/outro steps render as a "floating" card: no fill, light ink and
+    // a themed outline that sits directly on the dimmed backdrop (1.0.3-3).
+    readonly property bool floatStep: {
+        const def = guide.step >= 0 ? steps[guide.step] : null
+        return def ? def.kind !== "target" : false
+    }
+    // Bullet icons only ever appear on the floating intro card, where the
+    // backdrop is the dim layer: light mode needs the white on-accent ink,
+    // dark mode already has light auto ink.
+    readonly property string floatIconTint: Theme.dark ? "auto" : "onaccent"
+
     function openGuide() {
         step = 0
         visible = true
@@ -377,8 +388,12 @@ Rectangle {
         }
 
         function positionCentered() {
-            card.x = (guide.width - card.width) / 2
-            card.y = (guide.height - card.height) / 2
+            // Floating card: a touch above centre so it reads lighter and
+            // leaves the dashboard visible below, clamped to stay fully on
+            // screen even with tall translated content (1.0.3-3 realign).
+            card.x = Math.max(16, (guide.width - card.width) / 2)
+            const y = (guide.height - card.height) * 0.42
+            card.y = Math.max(16, Math.min(y, guide.height - card.height - 16))
         }
 
         function show() {
@@ -391,11 +406,26 @@ Rectangle {
         width: Math.min(560, guide.width - 32)
         height: cardLayout.implicitHeight + Theme.spacingXL * 2
         radius: Theme.radiusLG
-        color: Theme.surface
-        border.width: Theme.borderWidth
-        border.color: Theme.borderStrong
+        // Floating intro/outro steps: no fill and a themed outline straight
+        // on the dim layer — the old filled card was hard to tell apart from
+        // the page in both themes and blocked the view (1.0.3-3). Dark mode
+        // outlines white with a green inner hairline; light mode green.
+        color: guide.floatStep ? "transparent" : Theme.surface
+        border.width: guide.floatStep ? 2 : Theme.borderWidth
+        border.color: guide.floatStep ? Theme.overlayBorder : Theme.borderStrong
         opacity: 0.0
         scale: 0.97
+
+        // green inner hairline for the dark floating outline
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 5
+            radius: Theme.radiusLG + 3
+            color: "transparent"
+            border.width: 1
+            border.color: Theme.overlayAccent
+            visible: guide.floatStep && Theme.dark
+        }
 
         Behavior on opacity { NumberAnimation { duration: 200; easing.type: Theme.easing } }
         Behavior on scale { NumberAnimation { duration: 200; easing.type: Theme.easing } }
@@ -425,13 +455,17 @@ Rectangle {
                         return "help-circle"
                     }
                     size: 26
-                    tint: "onaccent"
+                    // "onaccent" is white in light mode and near-black in
+                    // dark mode — invisible on the matching surfaces. Auto
+                    // ink is correct for surface cards; floating cards need
+                    // the explicit light-theme white (see floatIconTint).
+                    tint: guide.floatStep ? guide.floatIconTint : "auto"
                 }
                 Text {
                     text: guide.step >= 0 ? guide.steps[guide.step].title : ""
                     font.pixelSize: Theme.fontSizeXL
                     font.weight: Font.DemiBold
-                    color: Theme.textPrimary
+                    color: guide.floatStep ? Theme.overlayText : Theme.textPrimary
                     wrapMode: Text.WordWrap
                     Layout.fillWidth: true
                 }
@@ -440,7 +474,7 @@ Rectangle {
             Text {
                 text: guide.step >= 0 ? guide.steps[guide.step].body : ""
                 font.pixelSize: Theme.fontSizeMD
-                color: Theme.textSecondary
+                color: guide.floatStep ? Theme.overlayTextMuted : Theme.textSecondary
                 wrapMode: Text.WordWrap
                 Layout.fillWidth: true
             }
@@ -468,12 +502,13 @@ Rectangle {
                         MIcon {
                             name: bulletRow.modelData.icon
                             size: 16
+                            tint: guide.floatIconTint
                             Layout.alignment: Qt.AlignTop
                         }
                         Text {
                             text: bulletRow.modelData.text
                             font.pixelSize: Theme.fontSizeSM
-                            color: Theme.textSecondary
+                            color: Theme.overlayTextMuted
                             wrapMode: Text.WordWrap
                             Layout.fillWidth: true
                         }
@@ -495,7 +530,9 @@ Rectangle {
                         width: index === guide.step ? 16 : 6
                         height: 6
                         radius: 3
-                        color: index === guide.step ? Theme.accent : Theme.borderStrong
+                        color: index === guide.step ? Theme.accent
+                             : guide.floatStep ? Theme.overlayTextMuted
+                             : Theme.borderStrong
 
                         Behavior on width { NumberAnimation { duration: 160; easing.type: Theme.easing } }
                         Behavior on color { ColorAnimation { duration: 160 } }
@@ -512,6 +549,7 @@ Rectangle {
                 MSecondaryButton {
                     text: guide.step >= guide.steps.length - 1 ? qsTr("Close")
                         : qsTr("Skip tour")
+                    inverted: guide.floatStep
                     onClicked: guide.closeGuide()
                 }
                 Item { Layout.fillWidth: true }
@@ -519,6 +557,7 @@ Rectangle {
                     text: qsTr("Back")
                     iconName: "arrow-left"
                     visible: guide.step > 0
+                    inverted: guide.floatStep
                     onClicked: guide.prevStep()
                 }
                 MButton {

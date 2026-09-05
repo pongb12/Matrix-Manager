@@ -259,9 +259,12 @@ Page {
                                     usedFraction: modelData.totalBytes > 0
                                                   ? modelData.usedBytes / modelData.totalBytes : 0
                                     legendLeft: qsTr("%1 used").arg(SystemInfo.formatBytes(modelData.usedBytes))
-                                    legendRight: qsTr("%1 free of %2").arg(
-                                                     SystemInfo.formatBytes(modelData.freeBytes)).arg(
-                                                     SystemInfo.formatBytes(modelData.totalBytes))
+                                    // The total is already shown in the mount
+                                    // header row; repeating it here squeezed
+                                    // both legends into truncation on narrow
+                                    // cards (1.0.3-3).
+                                    legendRight: qsTr("%1 free").arg(
+                                                     SystemInfo.formatBytes(modelData.freeBytes))
                                 }
                             }
                         }
