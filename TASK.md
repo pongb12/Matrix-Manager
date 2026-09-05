@@ -648,3 +648,14 @@ Known limitations kept honest:
 - Runner is `ubuntu-24.04` (noble) with apt Qt 6.4.2 — the same Qt minor as
   Mint 22, so CI-built packages match the target runtime. The committed
   `matrix-manager_vi.qm` means no linguist tools are required in CI.
+
+## 1.0.3-3.1
+- Security hardening: `CleanupService::isSafeSubPath` no longer opens the
+  guard when the root cannot be resolved (missing/dangling). On a fresh
+  machine an empty canonical root made `startsWith("")` accept any existing
+  path; now every candidate is rejected and regression tests pin the
+  behaviour (first caught by CI on a clean ubuntu-24.04 runner).
+- CI fully wired: `.github/workflows/build-deb.yml` builds on ubuntu-24.04
+  with apt Qt 6.4.2, runs the test suite offscreen, packages the .deb and
+  publishes it to a GitHub Release on `v*` tags.
+- Version bumped to 1.0.3-3.1 (package: matrix-manager_1.0.3-3.1_amd64.deb).

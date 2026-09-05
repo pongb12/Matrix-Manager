@@ -73,7 +73,7 @@ target_include_directories(matrix_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_features(matrix_core PUBLIC cxx_std_20)
 # Display version shown in the UI and About page. Keeps the Debian-style
 # patch suffix while PROJECT_VERSION stays numeric for CMake itself.
-set(MM_APP_DISPLAY_VERSION "1.0.3-3" CACHE STRING
+set(MM_APP_DISPLAY_VERSION "1.0.3-3.1" CACHE STRING
     "Version string shown to the user")
 target_compile_definitions(matrix_core PUBLIC MM_APP_VERSION="${MM_APP_DISPLAY_VERSION}")
 target_link_libraries(matrix_core PUBLIC Qt6::Core Qt6::Gui)
@@ -272,9 +272,9 @@ endif()
 # ---------------------------------------------------------------------------
 set(CPACK_PACKAGE_NAME "matrix-manager")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-# Debian-style patch release suffix: matrix-manager_1.0.3-3_amd64.deb.
+# Debian-style patch release suffix: matrix-manager_1.0.3-3.1_amd64.deb.
 # dpkg treats 1.0.3-2 as newer than 1.0.3-1 and older than 1.0.4.
-set(CPACK_DEBIAN_PACKAGE_RELEASE "3")
+set(CPACK_DEBIAN_PACKAGE_RELEASE "3.1")
 set(CPACK_PACKAGE_VENDOR "Matrix Manager")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
     "Local-first disk space and .deb application manager")
