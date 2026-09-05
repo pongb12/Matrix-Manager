@@ -62,12 +62,14 @@ void AsyncProcess::start(const QString &program, const QStringList &arguments,
     m_process = new QProcess(this);
     m_process->setProcessEnvironment(environment);
     m_process->setProcessChannelMode(QProcess::MergedChannels);
+    m_rawOutput.clear();
 
     connect(m_process, &QProcess::readyReadStandardOutput, this, [this] {
-        const QString chunk =
-            QString::fromLocal8Bit(m_process->readAllStandardOutput());
-        if (!chunk.isEmpty())
-            emit outputChunk(chunk);
+        const QByteArray bytes = m_process->readAllStandardOutput();
+        if (!bytes.isEmpty()) {
+            m_rawOutput += bytes;
+            emit outputChunk(QString::fromLocal8Bit(bytes));
+        }
     });
 
     connect(m_process, &QProcess::errorOccurred, this,
@@ -79,7 +81,11 @@ void AsyncProcess::start(const QString &program, const QStringList &arguments,
 
     connect(m_process, &QProcess::finished, this,
             [this](int exitCode, QProcess::ExitStatus status) {
-        const QString output = m_process->readAll();
+        // Anything that arrived after the last readyRead is still buffered;
+        // merge it into the accumulated output, then decode exactly once so
+        // multi-byte UTF-8 sequences split across chunk boundaries survive.
+        m_rawOutput += m_process->readAll();
+        const QString output = QString::fromLocal8Bit(m_rawOutput);
         const bool ok = status == QProcess::NormalExit && exitCode == 0;
         QProcess *proc = m_process;
         m_process = nullptr;

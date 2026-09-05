@@ -3,6 +3,9 @@
  *
  * Fixed sidebar navigation + page container. Deliberately desktop-native:
  * no hero section, no card grid, no marketing layout (AGENT.md rule 13).
+ * 1.0.3-1: themed icons in the navigation, a sliding selection indicator,
+ * a short enter transition when switching sections, and the guided tour
+ * overlay (replayable from Settings → Guide).
  */
 import QtQuick
 import QtQuick.Controls.Basic
@@ -16,13 +19,13 @@ ApplicationWindow {
     id: appWindow
 
     readonly property var navModel: [
-        { id: "overview",     label: qsTr("Overview") },
-        { id: "storage",      label: qsTr("Storage") },
-        { id: "applications", label: qsTr("Applications") },
-        { id: "cleanup",      label: qsTr("Cleanup") },
-        { id: "largefiles",   label: qsTr("Large Files") },
-        { id: "duplicates",   label: qsTr("Duplicates") },
-        { id: "settings",     label: qsTr("Settings") }
+        { id: "overview",     label: qsTr("Overview"),     icon: "layout-dashboard" },
+        { id: "storage",      label: qsTr("Storage"),      icon: "hard-drive" },
+        { id: "applications", label: qsTr("Applications"), icon: "package" },
+        { id: "cleanup",      label: qsTr("Cleanup"),      icon: "eraser" },
+        { id: "largefiles",   label: qsTr("Large Files"),  icon: "file-search" },
+        { id: "duplicates",   label: qsTr("Duplicates"),   icon: "copy" },
+        { id: "settings",     label: qsTr("Settings"),     icon: "settings" }
     ]
 
     width: 1180
@@ -47,6 +50,21 @@ ApplicationWindow {
         }
     }
 
+    // Page lookup by objectName — used by the guided tour to reach a page
+    // and prepare it (e.g. select the treemap mode) before its step.
+    function findPage(what) {
+        for (let i = 0; i < pagesArea.children.length; ++i) {
+            const child = pagesArea.children[i]
+            if (child.objectName === what)
+                return child
+        }
+        return null
+    }
+
+    function openGuide() {
+        guideOverlay.openGuide()
+    }
+
     // QA hook used by automated UI checks (no effect in normal use).
     function qaShowPage(i) {
         navList.currentIndex = i
@@ -58,6 +76,7 @@ ApplicationWindow {
 
         // -------------------------------------------------- sidebar
         Rectangle {
+            objectName: "sidebarNav"
             Layout.preferredWidth: 216
             Layout.fillHeight: true
             color: Theme.surface
@@ -99,6 +118,20 @@ ApplicationWindow {
                     currentIndex: 0
                     keyNavigationWraps: true
                     clip: true
+                    interactive: false
+
+                    // sliding selection indicator (single element that
+                    // glides to the active entry instead of a static bar)
+                    Rectangle {
+                        z: 100
+                        width: 3
+                        height: navList.currentItem ? navList.currentItem.height : 0
+                        y: navList.currentItem ? navList.currentItem.y : 0
+                        color: Theme.accent
+
+                        Behavior on y { NumberAnimation { duration: Theme.durationNormal; easing.type: Theme.easing } }
+                        Behavior on height { NumberAnimation { duration: Theme.durationNormal; easing.type: Theme.easing } }
+                    }
 
                     delegate: ItemDelegate {
                         id: navDelegate
@@ -111,22 +144,31 @@ ApplicationWindow {
                                  : navDelegate.hovered ? Theme.surfaceSunken
                                  : "transparent"
 
-                            Rectangle {
-                                width: 3
-                                height: parent.height
-                                color: navDelegate.highlighted ? Theme.accent : "transparent"
-                            }
+                            Behavior on color { ColorAnimation { duration: Theme.durationFast } }
                         }
 
-                        contentItem: Text {
-                            leftPadding: Theme.spacingLG
-                            verticalAlignment: Text.AlignVCenter
-                            text: modelData.label
-                            font.pixelSize: Theme.fontSizeMD
-                            font.weight: navDelegate.highlighted ? Font.DemiBold : Font.Normal
-                            color: navDelegate.highlighted ? Theme.textPrimary
-                                 : navDelegate.hovered ? Theme.textPrimary
-                                 : Theme.textSecondary
+                        contentItem: RowLayout {
+                            spacing: Theme.spacingMD
+
+                            Item { width: Theme.spacingMD; height: 1 }
+
+                            MIcon {
+                                name: modelData.icon
+                                size: 17
+                                opacity: navDelegate.highlighted ? 1.0 : 0.75
+
+                                Behavior on opacity { NumberAnimation { duration: Theme.durationFast } }
+                            }
+                            Text {
+                                text: modelData.label
+                                font.pixelSize: Theme.fontSizeMD
+                                font.weight: navDelegate.highlighted ? Font.DemiBold : Font.Normal
+                                color: navDelegate.highlighted ? Theme.textPrimary
+                                     : navDelegate.hovered ? Theme.textPrimary
+                                     : Theme.textSecondary
+                                elide: Text.ElideRight
+                                Layout.fillWidth: true
+                            }
                         }
 
                         onClicked: navList.currentIndex = index
@@ -149,20 +191,52 @@ ApplicationWindow {
 
         // -------------------------------------------------- pages
         StackLayout {
+            id: pagesArea
             Layout.fillWidth: true
             Layout.fillHeight: true
             currentIndex: navList.currentIndex
+            transform: Translate { id: pageShift; x: 0 }
 
             OverviewPage {
+                objectName: "pageOverview"
                 onRequestNavigate: (pageId) => appWindow.navigate(pageId)
             }
-            StoragePage {}
-            ApplicationsPage {}
-            CleanupPage {}
-            LargeFilesPage {}
-            DuplicatesPage {}
-            SettingsPage {}
+            StoragePage { objectName: "pageStorage" }
+            ApplicationsPage { objectName: "pageApplications" }
+            CleanupPage { objectName: "pageCleanup" }
+            LargeFilesPage { objectName: "pageLargeFiles" }
+            DuplicatesPage { objectName: "pageDuplicates" }
+            SettingsPage { objectName: "pageSettings" }
         }
+    }
+
+    // section switch: a short fade + slide that communicates the change
+    // without slowing navigation down
+    SequentialAnimation {
+        id: pageEnter
+
+        PropertyAction { target: pageShift; property: "x"; value: 18 }
+        PropertyAction { target: pagesArea; property: "opacity"; value: 0.55 }
+        ParallelAnimation {
+            NumberAnimation {
+                target: pageShift; property: "x"; to: 0
+                duration: Theme.durationNormal; easing.type: Theme.easing
+            }
+            NumberAnimation {
+                target: pagesArea; property: "opacity"; to: 1
+                duration: Theme.durationNormal; easing.type: Theme.easing
+            }
+        }
+    }
+    Connections {
+        target: navList
+        function onCurrentIndexChanged() { pageEnter.restart() }
+    }
+
+    // -------------------------------------------------- guided tour
+    MGuideOverlay {
+        id: guideOverlay
+        anchors.fill: parent
     }
 
     // -------------------------------------------------- toast host

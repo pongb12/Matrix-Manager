@@ -64,4 +64,10 @@ signals:
 
 private:
     QProcess *m_process = nullptr;
+    // Full output accumulated across readyRead chunks. QProcess::readAll()
+    // at process end returns only what was NOT consumed earlier — for large
+    // outputs (dpkg-query lists every installed package) the readyRead
+    // handler already drained the pipe, so the finished signal previously
+    // delivered an (almost) empty output. Accumulate and decode once.
+    QByteArray m_rawOutput;
 };

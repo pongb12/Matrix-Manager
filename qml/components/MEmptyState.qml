@@ -1,5 +1,6 @@
 // MEmptyState — meaningful empty state with explanation and next action
 // (DOC.md rule 23). Avoids "Nothing here :)".
+// `iconName` renders a themed MIcon; `glyph` remains as a text fallback.
 import QtQuick
 import QtQuick.Layouts
 import MatrixManager.Theme
@@ -8,14 +9,27 @@ ColumnLayout {
     id: emptyState
 
     property string glyph: "◌"
+    property string iconName: ""
     property string title: ""
     property string description: ""
     default property alias actions: actionsRow.data
 
     spacing: Theme.spacingSM
 
+    opacity: 0.0
+    Component.onCompleted: emptyState.opacity = 1.0
+    Behavior on opacity { NumberAnimation { duration: Theme.durationNormal; easing.type: Theme.easing } }
+
+    MIcon {
+        name: emptyState.iconName
+        visible: emptyState.iconName !== ""
+        size: 44
+        opacity: 0.75
+        Layout.alignment: Qt.AlignHCenter
+    }
     Text {
         text: emptyState.glyph
+        visible: emptyState.iconName === ""
         font.pixelSize: Theme.fontSizeDisplay + 6
         font.family: Theme.monoFamily
         color: Theme.textMuted

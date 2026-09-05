@@ -51,11 +51,12 @@ Page {
         spacing: Theme.spacingLG
 
         MPageHeader {
+            iconName: "layout-dashboard"
             title: qsTr("Overview")
             subtitle: qsTr("Current storage status and activity from this session")
 
             MIconButton {
-                glyph: "⟳"
+                iconName: "refresh-cw"
                 tooltip: qsTr("Refresh estimates")
                 onClicked: page.refreshEstimates()
             }

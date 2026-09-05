@@ -26,6 +26,8 @@ Page {
     property bool sortAscending: false
     property var searchEntries: []
     property var searchSummary: ({})
+    property string searchProgressText: ""
+    property string activeSearchRoot: ""
 
     Component.onCompleted: {
         // QA hook: auto-start a scan when requested (automated UI checks).
@@ -33,6 +35,21 @@ Page {
             page.startScan(qaScanPath)
         if (typeof qaStorageMode !== "undefined")
             modeSelector.currentIndex = qaStorageMode
+    }
+
+    // Mode switch used by the guided tour and QA hooks.
+    function setMode(index) {
+        modeSelector.currentIndex = index
+    }
+
+    // One folder dialog shared by every path field on this page.
+    MFolderDialog {
+        id: folderDialog
+        property var targetField: null
+        onAcceptedPath: (path) => {
+            if (targetField)
+                targetField.text = path
+        }
     }
 
     readonly property bool isHomeScan: lastScanRoot === StorageService.homePath()
@@ -82,13 +99,16 @@ Page {
     FileSearcher {
         id: fileSearcher
 
+        // The search card lives in a lazily-instantiated Component, so its
+        // ids (searchRoot, searchProgress) are not reachable here. State the
+        // page needs is mirrored onto page-level properties instead.
         onProgressChanged: (filesSeen) => {
-            searchProgress.text = SystemInfo.formatCount(filesSeen)
-                                  + qsTr(" files checked")
+            page.searchProgressText = SystemInfo.formatCount(filesSeen)
+                                      + qsTr(" files checked")
         }
 
         onPartialResults: (rootPath, results) => {
-            if (rootPath === searchRoot.text)
+            if (rootPath === page.activeSearchRoot)
                 page.searchEntries = results
         }
 
@@ -104,16 +124,20 @@ Page {
         }
     }
 
-    function startSearch() {
+    // Search parameters are passed explicitly: the fields live inside the
+    // lazily-instantiated search card, whose ids are NOT visible from a
+    // function defined on the page root (loader component scope).
+    function startSearch(rootPath, nameText, extText, minText, maxText) {
         // Empty fields mean "no limit"; MB fields are converted to bytes.
-        const min = searchMin.text.trim() === "" ? 0
-                  : Number(searchMin.text) * 1024 * 1024
-        const max = searchMax.text.trim() === "" ? 0
-                  : Number(searchMax.text) * 1024 * 1024
+        const min = minText === undefined || minText.trim() === "" ? 0
+                  : Number(minText) * 1024 * 1024
+        const max = maxText === undefined || maxText.trim() === "" ? 0
+                  : Number(maxText) * 1024 * 1024
         page.searchEntries = []
         page.searchSummary = {}
-        fileSearcher.start(searchRoot.text, searchName.text,
-                           searchExt.text, min, max)
+        page.searchProgressText = ""
+        page.activeSearchRoot = rootPath
+        fileSearcher.start(rootPath, nameText, extText, min, max)
     }
 
     function sortEntries() {
@@ -168,12 +192,14 @@ Page {
         spacing: Theme.spacingLG
 
         MPageHeader {
+            iconName: "hard-drive"
             title: qsTr("Storage")
             subtitle: qsTr("Explore volumes and directory usage — scanning runs only on your request")
         }
 
         MSegmented {
             id: modeSelector
+            objectName: "storageModes"
             model: [qsTr("Directory usage"), qsTr("Search"), qsTr("Treemap")]
         }
 
@@ -320,6 +346,7 @@ Page {
 
                 // ----------------------------------------- directory tool
                 MCard {
+                    objectName: "storageControls"
                     visible: modeSelector.currentIndex === 0
                     Layout.fillWidth: true
                     implicitHeight: explorer.implicitHeight + Theme.spacingLG * 2
@@ -358,6 +385,7 @@ Page {
                         }
 
                         RowLayout {
+                            objectName: "storagePathRow"
                             Layout.fillWidth: true
                             spacing: Theme.spacingSM
 
@@ -384,6 +412,15 @@ Page {
                                 }
 
                                 onAccepted: page.startScan(text)
+                            }
+                            MSecondaryButton {
+                                text: qsTr("Browse")
+                                iconName: "folder-open"
+                                enabled: !scanner.running
+                                onClicked: {
+                                    folderDialog.targetField = pathField
+                                    folderDialog.open()
+                                }
                             }
                         }
 
@@ -566,7 +603,7 @@ Page {
                                          && page.summary.totalFiles === undefined
                                 title: qsTr("Directory not scanned yet")
                                 description: qsTr("Choose a directory above and press Scan. Matrix Manager never scans anything on its own — scanning starts only when you ask for it.")
-                                glyph: "⌸"
+                                iconName: "hard-drive"
                             }
                         }
 
@@ -614,6 +651,7 @@ Page {
     Component {
         id: searchCardComp
                 MCard {
+            objectName: "storageSearchCard"
             width: parent.width
             height: implicitHeight
                     Layout.fillWidth: true
@@ -631,7 +669,9 @@ Page {
                             if (typeof qaStorageMode !== "undefined") {
                                 if (typeof qaSearchName !== "undefined")
                                     searchName.text = qaSearchName
-                                page.startSearch()
+                                page.startSearch(searchRoot.text, searchName.text,
+                                                 searchExt.text, searchMin.text,
+                                                 searchMax.text)
                             }
                         }
 
@@ -664,14 +704,27 @@ Page {
                                     border.color: searchRoot.activeFocus ? Theme.focus : Theme.border
                                 }
 
-                                onAccepted: page.startSearch()
+                                onAccepted: page.startSearch(searchRoot.text, searchName.text,
+                                                             searchExt.text, searchMin.text,
+                                                             searchMax.text)
                                 }
 
                             }
                             MButton {
                                 text: fileSearcher.running ? qsTr("Scanning…") : qsTr("Search")
                                 enabled: !fileSearcher.running
-                                onClicked: page.startSearch()
+                                onClicked: page.startSearch(searchRoot.text, searchName.text,
+                                                            searchExt.text, searchMin.text,
+                                                            searchMax.text)
+                            }
+                            MSecondaryButton {
+                                text: qsTr("Browse")
+                                iconName: "folder-open"
+                                enabled: !fileSearcher.running
+                                onClicked: {
+                                    folderDialog.targetField = searchRoot
+                                    folderDialog.open()
+                                }
                             }
                         }
 
@@ -781,7 +834,7 @@ Page {
                                 indeterminate: true
                             }
                             Text {
-                                id: searchProgress
+                                text: page.searchProgressText
                                 font.pixelSize: Theme.fontSizeSM
                                 font.family: Theme.monoFamily
                                 color: Theme.textSecondary
@@ -838,7 +891,7 @@ Page {
                                 }
 
                                 MIconButton {
-                                    glyph: "↗"
+                                    iconName: "external-link"
                                     tooltip: qsTr("Open file")
                                     onClicked: {
                                         if (!LargeFileService.openFile(modelData.path))
@@ -846,7 +899,7 @@ Page {
                                     }
                                 }
                                 MIconButton {
-                                    glyph: "⊞"
+                                    iconName: "folder"
                                     tooltip: qsTr("Show in folder")
                                     onClicked: {
                                         if (!LargeFileService.showInFolder(modelData.path))
@@ -862,7 +915,7 @@ Page {
                                          && page.searchSummary.count === undefined
                                 title: qsTr("No matches yet")
                                 description: qsTr("Type a name fragment or set a size range, then press Search. The scan walks the chosen directory only.")
-                                glyph: "⌕"
+                                iconName: "search"
                             }
                             MEmptyState {
                                 anchors.centerIn: parent
@@ -872,7 +925,7 @@ Page {
                                          && page.searchSummary.cancelled !== true
                                 title: qsTr("No files matched the filters")
                                 description: qsTr("Adjust the filters or search another location.")
-                                glyph: "⌕"
+                                iconName: "search"
                             }
                         }
 
@@ -901,6 +954,7 @@ Page {
     Component {
         id: treemapCardComp
                 MCard {
+            objectName: "treemapCard"
             width: parent.width
             height: implicitHeight
                     Layout.fillWidth: true

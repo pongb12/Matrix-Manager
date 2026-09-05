@@ -31,10 +31,35 @@ Page {
         for (let i = 0; i < thresholds.length; ++i) {
             if (thresholds[i].bytes === current) {
                 thresholdSelector.currentIndex = i
+                updateCustomDisplay(current)
                 return
             }
         }
         thresholdSelector.currentIndex = 1 // 500 MB default
+        updateCustomDisplay(current > 0 ? current : thresholds[1].bytes)
+    }
+
+    function updateCustomDisplay(bytes) {
+        if (bytes % (1024 * 1024 * 1024) === 0 && bytes >= 1024 * 1024 * 1024) {
+            customUnit.currentIndex = 1
+            customValue.value = bytes / (1024 * 1024 * 1024)
+        } else {
+            customUnit.currentIndex = 0
+            customValue.value = Math.max(1, Math.round(bytes / (1024 * 1024)))
+        }
+    }
+
+    function applyCustomThreshold() {
+        const bytes = customValue.value *
+                      (customUnit.currentIndex === 1 ? 1024 * 1024 * 1024
+                                                     : 1024 * 1024)
+        SettingsService.largeFileThresholdBytes = bytes
+        thresholdSelector.currentIndex = -1
+    }
+
+    MFolderDialog {
+        id: folderDialog
+        onAcceptedPath: (path) => pathField.text = path
     }
 
     // LargeFileService is a C++ singleton; results are observed here.
@@ -62,12 +87,14 @@ Page {
         spacing: Theme.spacingLG
 
         MPageHeader {
+            iconName: "file-search"
             title: qsTr("Large Files")
             subtitle: qsTr("Find files above a size threshold — nothing is deleted without confirmation")
         }
 
         // ------------------------------------------------ controls
         MCard {
+            objectName: "largeControls"
             Layout.fillWidth: true
             implicitHeight: controls.implicitHeight + Theme.spacingLG * 2
 
@@ -103,12 +130,20 @@ Page {
                         }
                     }
                     MSecondaryButton {
+                        text: qsTr("Browse")
+                        iconName: "folder-open"
+                        enabled: !LargeFileService.running
+                        onClicked: folderDialog.open()
+                    }
+                    MSecondaryButton {
                         text: qsTr("Home")
+                        iconName: "home"
                         enabled: !LargeFileService.running
                         onClicked: pathField.text = StorageService.homePath()
                     }
                     MSecondaryButton {
                         text: qsTr("Filesystem")
+                        iconName: "database"
                         enabled: !LargeFileService.running
                         onClicked: pathField.text = "/"
                     }
@@ -129,8 +164,32 @@ Page {
                         onActivated: (index) => {
                             SettingsService.largeFileThresholdBytes =
                                 page.thresholds[index].bytes
+                            updateCustomDisplay(page.thresholds[index].bytes)
                         }
                     }
+
+                    Text {
+                        text: qsTr("Custom")
+                        font.pixelSize: Theme.fontSizeMD
+                        color: Theme.textMuted
+                    }
+                    SpinBox {
+                        id: customValue
+                        from: 1
+                        to: 99999
+                        editable: true
+                        implicitWidth: 96
+                        font.pixelSize: Theme.fontSizeSM
+                        onValueModified: page.applyCustomThreshold()
+                    }
+                    ComboBox {
+                        id: customUnit
+                        model: [qsTr("MB"), qsTr("GB")]
+                        implicitWidth: 84
+                        font.pixelSize: Theme.fontSizeSM
+                        onActivated: (index) => page.applyCustomThreshold()
+                    }
+
                     Item { Layout.fillWidth: true }
 
                     MProgressBar {
@@ -268,7 +327,7 @@ Page {
                                     spacing: Theme.spacingXS
 
                                     MIconButton {
-                                        glyph: "↗"
+                                        iconName: "external-link"
                                         tooltip: qsTr("Open file")
                                         onClicked: {
                                             if (!LargeFileService.openFile(path))
@@ -276,7 +335,7 @@ Page {
                                         }
                                     }
                                     MIconButton {
-                                        glyph: "⊞"
+                                        iconName: "folder"
                                         tooltip: qsTr("Show in folder")
                                         onClicked: {
                                             if (!LargeFileService.showInFolder(path))
@@ -284,7 +343,7 @@ Page {
                                         }
                                     }
                                     MIconButton {
-                                        glyph: "✕"
+                                        iconName: "trash-2"
                                         tooltip: qsTr("Move to trash")
                                         onClicked: deleteDialog.openFor(name, path, size)
                                     }
@@ -323,7 +382,7 @@ Page {
                             description: !page.hasScanned
                                    ? qsTr("Choose a location and threshold, then press Scan. Scanning starts only on your request.")
                                    : qsTr("Try lowering the size threshold or scanning another location.")
-                            glyph: "◻"
+                            iconName: "file-search"
                         }
                     }
                 }

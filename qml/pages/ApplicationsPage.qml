@@ -40,6 +40,7 @@ Page {
         spacing: Theme.spacingLG
 
         MPageHeader {
+            iconName: "package"
             title: qsTr("Applications")
             subtitle: qsTr("Installed .deb packages on this system")
 
@@ -49,7 +50,8 @@ Page {
                 onTextChanged: PackageService.model.setFilter(text)
             }
             MIconButton {
-                glyph: "⟳"
+                objectName: "appsRefresh"
+                iconName: "refresh-cw"
                 tooltip: qsTr("Refresh list")
                 enabled: !PackageService.loading && !PackageService.busy
                 onClicked: PackageService.refresh()
@@ -102,7 +104,7 @@ Page {
                         id: sortDirection
                         visible: PackageService.model.totalCount > 0
                         property bool descending: true
-                        glyph: descending ? "↓" : "↑"
+                        iconName: descending ? "arrow-down" : "arrow-up"
                         tooltip: descending ? qsTr("Descending") : qsTr("Ascending")
                         onClicked: descending = !descending
                     }
@@ -161,7 +163,7 @@ Page {
                             anchors.centerIn: parent
                             title: qsTr("No installed packages found")
                             description: qsTr("dpkg-query returned no packages with 'installed' status.")
-                            glyph: "◫"
+                            iconName: "package"
                         }
                     }
 

@@ -113,11 +113,13 @@ Page {
         spacing: Theme.spacingLG
 
         MPageHeader {
+            objectName: "cleanupHeader"
+            iconName: "eraser"
             title: qsTr("Cleanup")
             subtitle: qsTr("Only clearly identified, safe-to-remove data is listed — each rule is explicit")
 
             MIconButton {
-                glyph: "⟳"
+                iconName: "refresh-cw"
                 tooltip: qsTr("Recalculate sizes")
                 enabled: !CleanupService.running
                 onClicked: refreshEstimates()

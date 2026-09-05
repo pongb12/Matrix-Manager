@@ -40,6 +40,7 @@ Page {
         spacing: Theme.spacingLG
 
         MPageHeader {
+            iconName: "settings"
             title: qsTr("Settings")
             subtitle: qsTr("Preferences are stored locally on this machine only")
         }
@@ -99,7 +100,7 @@ Page {
                             }
                             MSegmented {
                                 id: languageSelector
-                                model: [] // BISECT
+                                model: [qsTr("Tiếng Việt"), qsTr("English")]
                                 currentIndex: SettingsService.language === "en" ? 1 : 0
                                 onActivated: (index) =>
                                     SettingsService.language = (index === 1 ? "en" : "vi")
@@ -212,6 +213,39 @@ Page {
                             wrapMode: Text.WordWrap
                             Layout.fillWidth: true
                             leftPadding: 38
+                        }
+                    }
+                }
+
+                // ------------------------------------------ help (guided tour)
+                MCard {
+                    Layout.fillWidth: true
+                    implicitHeight: helpCard.implicitHeight + Theme.spacingLG * 2
+
+                    ColumnLayout {
+                        id: helpCard
+                        anchors.fill: parent
+                        anchors.margins: Theme.spacingLG
+                        spacing: Theme.spacingMD
+
+                        Text {
+                            text: qsTr("Help")
+                            font.pixelSize: Theme.fontSizeLG
+                            font.weight: Font.DemiBold
+                            color: Theme.textPrimary
+                        }
+                        Text {
+                            text: qsTr("A short animated tour walks you through every section: scanning, the treemap, search, large files, duplicates, applications and cleanup. It starts with a brief introduction and you can replay it anytime.")
+                            font.pixelSize: Theme.fontSizeMD
+                            color: Theme.textSecondary
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
+                        MButton {
+                            objectName: "guideButton"
+                            text: qsTr("Guide")
+                            iconName: "circle-help"
+                            onClicked: appWindow.openGuide()
                         }
                     }
                 }

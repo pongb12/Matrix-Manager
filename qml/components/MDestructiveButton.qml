@@ -14,6 +14,9 @@ Button {
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
 
+    scale: control.pressed ? 0.97 : 1.0
+    Behavior on scale { NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
+
     contentItem: Text {
         text: control.text
         font.pixelSize: Theme.fontSizeLG

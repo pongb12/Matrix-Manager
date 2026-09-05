@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
     // QA support: MM_QA_SCAN=<path> auto-starts a storage scan so that
     // automated UI checks can exercise the results table. Unset normally.
     const QString qaScan = qEnvironmentVariable("MM_QA_SCAN");
+    const QString qaGuide = qEnvironmentVariable("MM_QA_GUIDE");
 #ifdef MM_QA_SUPPORT
     if (!qaScan.isEmpty()) {
         engine.rootContext()->setContextProperty(QStringLiteral("qaScanPath"), qaScan);
@@ -109,8 +110,11 @@ int main(int argc, char *argv[])
     const QString qaSearch = qEnvironmentVariable("MM_QA_SEARCH_NAME");
     if (!qaSearch.isEmpty())
         engine.rootContext()->setContextProperty(QStringLiteral("qaSearchName"), qaSearch);
+    if (!qaGuide.isEmpty())
+        engine.rootContext()->setContextProperty(QStringLiteral("qaGuideStep"), qaGuide);
 #else
     Q_UNUSED(qaScan);
+    Q_UNUSED(qaGuide);
 #endif
 
     const QUrl url(QStringLiteral("qrc:/qml/MatrixManager/Main.qml"));
@@ -136,14 +140,19 @@ int main(int argc, char *argv[])
         if (auto *win = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0))) {
             int delay = 600;
             const QStringList indexes = qaPages.split(',');
+            const bool guideActive = !qaGuide.isEmpty();
             for (const QString &s : indexes) {
                 bool ok = false;
                 const int idx = s.toInt(&ok);
                 if (!ok)
                     continue;
-                QTimer::singleShot(delay, win, [win, idx]() {
-                    QMetaObject::invokeMethod(win, "qaShowPage", Q_ARG(QVariant, idx));
-                });
+                // With the guided tour active it navigates by itself; an
+                // unconditional qaShowPage here would race its prepare().
+                if (!guideActive) {
+                    QTimer::singleShot(delay, win, [win, idx]() {
+                        QMetaObject::invokeMethod(win, "qaShowPage", Q_ARG(QVariant, idx));
+                    });
+                }
                 delay += 900;
                 const QString out = qaOut + QStringLiteral("/page%1.png").arg(idx);
                 QTimer::singleShot(delay, win, [win, out]() {

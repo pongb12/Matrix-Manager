@@ -63,7 +63,11 @@ add_library(matrix_core STATIC
 )
 target_include_directories(matrix_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_features(matrix_core PUBLIC cxx_std_20)
-target_compile_definitions(matrix_core PUBLIC MM_APP_VERSION="${PROJECT_VERSION}")
+# Display version shown in the UI and About page. Keeps the Debian-style
+# patch suffix while PROJECT_VERSION stays numeric for CMake itself.
+set(MM_APP_DISPLAY_VERSION "1.0.3-1" CACHE STRING
+    "Version string shown to the user")
+target_compile_definitions(matrix_core PUBLIC MM_APP_VERSION="${MM_APP_DISPLAY_VERSION}")
 target_link_libraries(matrix_core PUBLIC Qt6::Core Qt6::Gui)
 # The static library must not collide with the executable's copy when linking.
 set_target_properties(matrix_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -128,7 +132,12 @@ qt_add_qml_module(mm_components
         qml/components/MDestructiveButton.qml
         qml/components/MEmptyState.qml
         qml/components/MErrorState.qml
+        qml/components/MFolderDialog.qml
+        qml/components/MFolderDialogLabs.qml
+        qml/components/MFolderDialogQuick.qml
+        qml/components/MGuideOverlay.qml
         qml/components/MIconButton.qml
+        qml/components/MIcon.qml
         qml/components/MListItem.qml
         qml/components/MLoadingState.qml
         qml/components/MMTreemap.qml
@@ -197,6 +206,19 @@ qt_add_resources(matrix-manager "appicon"
         resources/matrix-manager.svg
 )
 
+# Theme-tinted UI icons (Lucide-derived; see resources/icons/LICENSE-NOTES.md).
+# MIcon loads them as qrc:/icons/<variant>/<name>.svg where variant is one of
+# light | dark | onaccent-light | onaccent-dark.
+file(GLOB MM_ICON_FILES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/light/*.svg"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/dark/*.svg"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/onaccent-light/*.svg"
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/onaccent-dark/*.svg")
+qt_add_resources(matrix-manager "icons"
+    PREFIX "/icons"
+    BASE "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons"
+    FILES ${MM_ICON_FILES})
+
 # Compiled Vietnamese translation (generated from translations/
 # matrix-manager_vi.ts with lrelease; see README "Translations").
 qt_add_resources(matrix-manager "translations"
@@ -241,6 +263,9 @@ endif()
 # ---------------------------------------------------------------------------
 set(CPACK_PACKAGE_NAME "matrix-manager")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+# Debian-style patch release suffix: matrix-manager_1.0.3-1_amd64.deb.
+# dpkg treats 1.0.3-1 as newer than 1.0.3 and older than 1.0.4.
+set(CPACK_DEBIAN_PACKAGE_RELEASE "1")
 set(CPACK_PACKAGE_VENDOR "Matrix Manager")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY
     "Local-first disk space and .deb application manager")
@@ -268,6 +293,8 @@ qml6-module-qtquick-controls, \
 qml6-module-qtquick-templates, \
 qml6-module-qtquick-layouts, \
 qml6-module-qtquick-window, \
+qml6-module-qtquick-dialogs, \
+qml6-module-qt-labs-platform, \
 qml6-module-qtqml-workerscript")
 set(CPACK_GENERATOR "DEB")
 include(CPack)

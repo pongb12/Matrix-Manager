@@ -37,6 +37,12 @@ Page {
             page.startScan(qaDupScanPath)
     }
 
+    MFolderDialog {
+        id: folderDialog
+        onAcceptedPath: (path) => pathField.text = path
+    }
+
+
     DuplicateScanner {
         id: scanner
 
@@ -109,6 +115,7 @@ Page {
         spacing: Theme.spacingLG
 
         MPageHeader {
+            iconName: "copy"
             title: qsTr("Duplicates")
             subtitle: qsTr("Find duplicate files — grouped by content, nothing is deleted automatically")
         }
@@ -125,6 +132,7 @@ Page {
 
                 // -------------------------------------------- tool card
                 MCard {
+                    objectName: "dupControls"
                     Layout.fillWidth: true
                     implicitHeight: controls.implicitHeight + Theme.spacingLG * 2
 
@@ -163,7 +171,14 @@ Page {
                                 onAccepted: page.startScan(text)
                             }
                             MSecondaryButton {
+                                text: qsTr("Browse")
+                                iconName: "folder-open"
+                                enabled: !scanner.running
+                                onClicked: folderDialog.open()
+                            }
+                            MSecondaryButton {
                                 text: qsTr("Home")
+                                iconName: "home"
                                 enabled: !scanner.running
                                 onClicked: pathField.text = StorageService.homePath()
                             }
@@ -358,7 +373,7 @@ Page {
                     Layout.topMargin: Theme.spacingXL
                     title: qsTr("No duplicate groups yet")
                     description: qsTr("Choose a directory and press Scan. Files are compared by size first and hashed only when needed.")
-                    glyph: "⧉"
+                    iconName: "copy"
                 }
                 MEmptyState {
                     visible: !scanner.running
@@ -368,7 +383,7 @@ Page {
                     Layout.topMargin: Theme.spacingXL
                     title: qsTr("No duplicates found in this location")
                     description: qsTr("Every file compared here has a unique content hash.")
-                    glyph: "✓"
+                    iconName: "check"
                 }
             }
         }

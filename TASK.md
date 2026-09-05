@@ -565,3 +565,41 @@ review
 mark complete
 
 If a task reveals an architectural issue, fix the architecture before adding more dependent functionality.
+
+## Patch release notes (1.0.3-1)
+
+Fixed in this release:
+
+- AsyncProcess delivered only the unread remainder of process output to the
+  finished handler (readyRead had already drained the pipe), so on real
+  systems `dpkg-query` produced an empty package list. Output is now
+  accumulated and decoded once; regression test added (tst_asyncprocess).
+- Settings page language selector had an empty model left over from a
+  Qt 6.2-6.4 layout bisect; the Tiếng Việt / English buttons are back.
+- The deprecated `QCryptographicHash::addData(const char*, qsizetype)`
+  call was replaced with the `QByteArray` overload (warning-free on
+  Qt 6.2-6.8, see 1.0.3 notes).
+
+New in this release (user requests):
+
+- Browse buttons (folder picker) on Storage, Storage search, Large Files
+  and Duplicates path fields; the manual path entry is kept. The picker is
+  the QtQuick.Dialogs FolderDialog on Qt 6.3+ and a Qt.labs.platform
+  fallback on Qt 6.2 (MFolderDialog adapts at runtime).
+- Large Files: custom size threshold (value + MB/GB) next to the presets.
+- Treemap: category colour-coding with legend, gutters, rounded corners,
+  hover outline, staggered entrance animation, overflow chip.
+- Consistent Lucide-derived icon set (recolored light/dark/on-accent,
+  bundled in resources — no runtime network use).
+- Guided tour: Settings → Guide opens an animated spotlight walkthrough
+  (intro card first, per-section steps, closing card), replayable anytime.
+- Short enter transition on section switch, sliding sidebar indicator and
+  button micro-interactions using the existing motion tokens.
+
+Known limitations kept honest:
+
+- MM-090: on Qt 6.2-6.4 a few recursive-rearrange warnings can still be
+  logged when the search card is arranged; they are log-only.
+- The folder picker on Qt 6.2 uses the native dialog helper; on minimal
+  desktops without one the Browse button may do nothing on that floor
+  version (6.3+ is unaffected).

@@ -1,10 +1,13 @@
-// MSecondaryButton — low-emphasis action (outlined).
+// MSecondaryButton — low-emphasis action (outlined). Optional `icon`.
 import QtQuick
 import QtQuick.Controls.Basic
+import QtQuick.Layouts
 import MatrixManager.Theme
 
 Button {
     id: control
+
+    property string iconName: ""
 
     implicitHeight: Theme.controlHeight
     implicitWidth: Math.max(contentItem.implicitWidth + leftPadding + rightPadding, 80)
@@ -13,12 +16,27 @@ Button {
     hoverEnabled: true
     focusPolicy: Qt.StrongFocus
 
-    contentItem: Text {
-        text: control.text
-        font.pixelSize: Theme.fontSizeLG
-        color: control.enabled ? Theme.textPrimary : Theme.textMuted
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
+    scale: control.pressed ? 0.97 : 1.0
+    Behavior on scale { NumberAnimation { duration: Theme.durationFast; easing.type: Theme.easing } }
+
+    contentItem: RowLayout {
+        spacing: Theme.spacingSM
+
+        MIcon {
+            name: control.iconName
+            visible: control.iconName !== ""
+            size: 16
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        Text {
+            text: control.text
+            font.pixelSize: Theme.fontSizeLG
+            color: control.enabled ? Theme.textPrimary : Theme.textMuted
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            Layout.fillWidth: true
+        }
     }
 
     background: Rectangle {

@@ -14,12 +14,30 @@ Interface language: **Vietnamese by default**, English included.
 | Page | Purpose |
 |------|---------|
 | **Overview** | Real disk usage, cleanup candidate sizes, installed package totals and session activity. Only cheap data is read automatically; everything expensive is loaded on demand. |
-| **Storage** | Mounted volumes (capacity, used, free, filesystem, mount point) and an on-demand directory usage explorer with incremental results, cancellation and honest error reporting. Includes a Home folder breakdown with an explicit "Other" remainder, a **filesystem search** (name / extension / size range, MM-031) and a **treemap** view (MM-023) with the table as the accessible alternative. |
+| **Storage** | Mounted volumes (capacity, used, free, filesystem, mount point) and an on-demand directory usage explorer with incremental results, cancellation and honest error reporting. Includes a Home folder breakdown with an explicit "Other" remainder, a **filesystem search** (name / extension / size range, MM-031) and a **treemap** view (MM-023) colour-coded by file category with a legend; the table remains the accessible alternative. |
 | **Applications** | Installed .deb packages via `dpkg-query`: search, sort by size/name/version, details view, and safe uninstall through the system package manager. |
 | **Cleanup** | Three explicit, rule-based candidates: user trash, APT package cache and thumbnail cache. Each rule explains what it is, what it costs and what will happen. Nothing runs without a review step. |
-| **Large Files** | Find files above a threshold (100 MB / 500 MB / 1 GB / 5 GB). Open, show in folder, or move to trash after explicit confirmation. |
+| **Large Files** | Find files above a threshold — presets (100 MB / 500 MB / 1 GB / 5 GB) **or any custom size** you type. Open, show in folder, or move to trash after explicit confirmation. |
 | **Duplicates** | Content-based duplicate detection (MM-032): files are compared by size first and hashed only when needed. Duplicate groups are shown with every member; you pick what goes to the trash and review the list before anything happens. |
-| **Settings** | **Language (Tiếng Việt / English, applied live)**, theme (System/Light/Dark), default large-file threshold, destructive-confirmation preference, scan boundary options, About. |
+| **Settings** | **Language (Tiếng Việt / English, applied live)**, theme (System/Light/Dark), default large-file threshold, destructive-confirmation preference, scan boundary options, **guided tour**, About. |
+
+## Interface tour and icons
+
+- **Guided tour.** Settings → **Guide** opens a short animated tour: a brief
+  introduction first, then a spotlight that walks through every section with
+  explanations (scanning, treemap, search, large files, duplicates,
+  applications, cleanup). Back/Next navigation, replayable anytime.
+- **Browse buttons.** Every path field (Storage, Storage search, Large Files,
+  Duplicates) has a **Browse** button that opens the system folder picker;
+  the manual path entry stays available.
+- **Icons.** The interface uses a consistent icon set derived from
+  [Lucide](https://lucide.dev) (ISC license, see
+  `resources/icons/LICENSE-NOTES.md`), recolored for the light and dark
+  themes. The icons ship **inside the application** — nothing is fetched
+  from the network at runtime.
+- **Animations.** Section switches, the sidebar selection indicator,
+  buttons and the treemap have short, restrained transitions built from the
+  theme's motion tokens.
 
 ## Product principles
 
@@ -69,6 +87,8 @@ sudo apt install build-essential cmake \
     qml6-module-qtquick-templates \
     qml6-module-qtquick-layouts \
     qml6-module-qtquick-window \
+    qml6-module-qtquick-dialogs \
+    qml6-module-qt-labs-platform \
     qml6-module-qtqml-workerscript
 ```
 
@@ -80,6 +100,8 @@ What each Qt package is for:
 | `qt6-declarative-dev` | Qt Qml / Quick / QuickControls2 development files (build) |
 | `libxkbcommon-dev` | Keyboard input support for Qt Gui (build) |
 | `qml6-module-qtquick*` | Runtime QML modules: QtQuick, Controls (Basic style), Templates, Layouts (run) |
+| `qml6-module-qtquick-dialogs` | Runtime QML module for the folder picker used by the Browse buttons (run, Qt 6.3+) |
+| `qml6-module-qt-labs-platform` | Native folder-picker fallback used on Qt 6.2 (run) |
 | `qml6-module-qtqml-workerscript` | Runtime helper module required by QtQuick (run) |
 
 If a build already failed because of a missing Qt component, delete the
@@ -112,8 +134,9 @@ ctest --test-dir build --output-on-failure
 ```
 
 Five suites run: size formatting, dpkg-query parsing, cleanup rules,
-duplicate detection and filesystem search. The filesystem suites create
-their data inside `QTemporaryDir` and never touch your real home directory.
+duplicate detection, filesystem search and process-output capture. The
+filesystem suites create their data inside `QTemporaryDir` and never touch
+your real home directory.
 
 ### Build and install the .deb package (recommended for daily use)
 
@@ -133,12 +156,14 @@ cpack --config build/CPackConfig.cmake -G DEB
 ```
 
 The result is `matrix-manager_<version>_amd64.deb` in the project root
-(the version comes from `project(... VERSION ...)` in `CMakeLists.txt`).
+(the version comes from `project(... VERSION ...)` in `CMakeLists.txt`,
+with `CPACK_DEBIAN_PACKAGE_RELEASE` adding a Debian-style revision, e.g.
+`matrix-manager_1.0.3-1_amd64.deb`).
 
 **Step 3 — install the package:**
 
 ```bash
-sudo apt install ./matrix-manager_1.0.2_amd64.deb
+sudo apt install ./matrix-manager_1.0.3-1_amd64.deb
 ```
 
 > **Why `apt install ./file.deb` and not `dpkg -i file.deb`?**
@@ -214,14 +239,15 @@ src/
 qml/
 ├── Main.qml            Application shell: sidebar navigation + pages
 ├── theme/Theme.qml     Design token singleton (both themes)
-├── components/         21 reusable styled controls (incl. MMTreemap)
+├── components/         23 reusable styled controls (incl. MMTreemap,
+│                        MIcon, MGuideOverlay)
 └── pages/              Overview, Storage, Applications, Cleanup,
                         Large Files, Duplicates, Settings
 
 tests/                  QtTest suites (ctest integration)
 translations/           Vietnamese catalog (.ts + compiled .qm)
 packaging/              .desktop entry
-resources/              Application icon
+resources/              Application icon + themed UI icons (Lucide-derived)
 ```
 
 Key design decisions:
@@ -239,7 +265,7 @@ Key design decisions:
   unprivileged and no environment leaks through polkit's sanitisation.
 - **Verified builds.** The application builds and runs against Qt 6.8 and
   Qt 6.2.4 (bracketing Mint 22's Qt 6.4), with screenshots captured from
-  automated offscreen UI runs; all five test suites pass on both.
+  automated offscreen UI runs; all six test suites pass on both.
 
 ## Roadmap
 
