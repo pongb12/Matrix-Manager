@@ -140,8 +140,17 @@ bool CleanupService::isSafeSubPath(const QString &canonicalRoot,
     if (canonicalRoot.isEmpty() || candidatePath.isEmpty())
         return false;
     const QString root = QDir(canonicalRoot).canonicalPath();
+    if (root.isEmpty()) {
+        // The root cannot be resolved (never created, deleted, or a
+        // dangling symlink). Refuse to open the guard: callers only ever
+        // delete entries meant to live under root, and an unresolvable
+        // root must never widen the check to "everything". Regression:
+        // on a fresh machine an empty root made startsWith("") accept
+        // any existing path such as /etc/passwd.
+        return false;
+    }
     QString candidate = QDir(candidatePath).canonicalPath();
-    if (root.isEmpty() || candidate.isEmpty()) {
+    if (candidate.isEmpty()) {
         // The entry may already be gone; compare what exists of the chain.
         candidate = QDir::cleanPath(candidatePath);
     }

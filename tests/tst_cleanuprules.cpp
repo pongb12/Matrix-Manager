@@ -9,6 +9,7 @@
 
 #include "cleanup/CleanupService.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QSet>
 
@@ -81,6 +82,18 @@ void CleanupRulesTest::guardRejectsOutsidePaths()
     QVERIFY(!CleanupService::isSafeSubPath(trash, QStringLiteral("/usr/bin")));
     QVERIFY(!CleanupService::isSafeSubPath(trash, QDir::homePath()));
     QVERIFY(!CleanupService::isSafeSubPath(trash, QString()));
+
+    // Regression (first caught on a fresh CI runner, ubuntu-24.04):
+    // when the root does not exist its canonical path is empty and
+    // startsWith("") accepted ANY existing path. A missing root must
+    // close the guard, not open it.
+    const QString gone = QDir::tempPath()
+        + QStringLiteral("/matrix-manager-guard-%1")
+              .arg(QCoreApplication::applicationPid());
+    QVERIFY(!CleanupService::isSafeSubPath(gone, QStringLiteral("/etc/passwd")));
+    QVERIFY(!CleanupService::isSafeSubPath(gone, QDir::homePath()));
+    QVERIFY(!CleanupService::isSafeSubPath(gone,
+                                           gone + QStringLiteral("/entry")));
 }
 
 void CleanupRulesTest::guardAcceptsInsidePaths()
