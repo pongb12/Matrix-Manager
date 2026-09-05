@@ -12,6 +12,10 @@ add_executable(tst_packageparser tst_packageparser.cpp)
 target_link_libraries(tst_packageparser PRIVATE matrix_core Qt6::Test)
 add_test(NAME tst_packageparser COMMAND tst_packageparser)
 
+add_executable(tst_packagemodel tst_packagemodel.cpp)
+target_link_libraries(tst_packagemodel PRIVATE matrix_core Qt6::Test)
+add_test(NAME tst_packagemodel COMMAND tst_packagemodel)
+
 add_executable(tst_cleanuprules tst_cleanuprules.cpp)
 target_link_libraries(tst_cleanuprules PRIVATE matrix_core Qt6::Test)
 add_test(NAME tst_cleanuprules COMMAND tst_cleanuprules)

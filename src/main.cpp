@@ -19,10 +19,12 @@
 
 #include <QFile>
 #include <QGuiApplication>
+#include <QImageReader>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QQuickWindow>
+#include <QSvgRenderer>
 #include <QTimer>
 #include <QUrl>
 #include <qqml.h>
@@ -52,6 +54,25 @@ int main(int argc, char *argv[])
 
     // Deterministic styling across distributions (Basic = flat, stylable).
     QQuickStyle::setStyle(QStringLiteral("Basic"));
+
+    // The UI icon set (qrc:/icons/*.svg) is decoded by the SVG image-format
+    // plugin, which distro Qt ships as a separate runtime package
+    // (libqt6svg6 on Debian/Ubuntu/Mint). When it is missing every icon
+    // silently fails to load, so say exactly what to install instead of
+    // letting the interface degrade without an explanation.
+    if (!QImageReader::supportedImageFormats().contains("svg")) {
+        qWarning() << "SVG image format support is missing: the UI will show"
+                   << "no icons. Install the Qt SVG runtime package"
+                   << "(Debian/Ubuntu/Mint: sudo apt install libqt6svg6)"
+                   << "and start the application again.";
+    }
+
+    // Reference one QtSvg symbol so libQt6Svg.so.6 stays in the binary's
+    // NEEDED list even with the linker's --as-needed default. Debian
+    // dependency tools (dpkg-shlibdeps / our .deb Depends) then see the
+    // runtime SVG requirement that the dlopened icon decoder implies.
+    QSvgRenderer svgLinkProbe;
+    Q_UNUSED(svgLinkProbe);
 
     // Register C++ services under the MatrixManager.Core namespace.
     // Instances are owned by the application object and live for the

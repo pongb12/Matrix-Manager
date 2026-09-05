@@ -91,7 +91,9 @@ Rectangle {
             body: qsTr("Pick a folder by typing a path or pressing Browse, then press Scan. Scanning starts only on your request, updates live and can be cancelled at any time. The table shows every subfolder with its size."),
             prepare: function () {
                 appWindow.navigate("storage")
-                appWindow.findPage("pageStorage").setMode(0)
+                const p = appWindow.findPage("pageStorage")
+                if (p)
+                    p.setMode(0)
             }
         },
         {
@@ -100,7 +102,9 @@ Rectangle {
             body: qsTr("The modes switch the results view. Treemap draws each folder as a proportional block — click a block to step inside it, hover for the full path. The legend explains the colours."),
             prepare: function () {
                 appWindow.navigate("storage")
-                appWindow.findPage("pageStorage").setMode(2)
+                const p = appWindow.findPage("pageStorage")
+                if (p)
+                    p.setMode(2)
             }
         },
         {
@@ -109,7 +113,9 @@ Rectangle {
             body: qsTr("The Search mode finds files by name and extension, with minimum and maximum size filters. Press Search — results stream in incrementally and are capped at 5000 entries."),
             prepare: function () {
                 appWindow.navigate("storage")
-                appWindow.findPage("pageStorage").setMode(1)
+                const p = appWindow.findPage("pageStorage")
+                if (p)
+                    p.setMode(1)
             }
         },
         {
@@ -127,7 +133,7 @@ Rectangle {
         {
             kind: "target", target: "appsRefresh", page: "applications",
             title: qsTr("Applications"),
-            body: qsTr("Lists the .deb packages installed on this system via dpkg-query. Uninstalling always goes through the system package manager with a password prompt and a confirmation dialog. The arrow button refreshes the list."),
+            body: qsTr("Lists the .deb packages installed on this system via dpkg-query, grouped into categories for quick browsing. Uninstalling always goes through the system package manager with a password prompt and a confirmation dialog. The arrow button refreshes the list."),
             prepare: function () { appWindow.navigate("applications") }
         },
         {
@@ -166,12 +172,45 @@ Rectangle {
 
     function applyStep() {
         const def = steps[step]
+        if (!def)
+            return
         ring.visible = false
-        demoDot.stop()
-        if (def.prepare)
-            def.prepare()
+        if (def.prepare) {
+            // A failing prepare (unexpected layout, missing page) must never
+            // abort the tour before the locate timer is scheduled — degrade
+            // to a centered card instead of freezing mid-walkthrough.
+            try {
+                def.prepare()
+            } catch (e) {
+                console.warn("Guide: prepare failed for step", step, "-", e)
+            }
+        }
         // let navigation / mode switches lay out their targets
         locateTimer.restart()
+    }
+
+    // Scrolls the target into view inside any scrollable ancestor. Out-of-view
+    // targets are centred so the step card fits above or below without
+    // covering the spotlight. Without this the Settings step pointed at empty
+    // space: the Guide button sits in a scrollable column below the fold, its
+    // mapped rect landed below the window and the ring highlighted nothing
+    // (1.0.3-2 fix).
+    function scrollIntoView(item) {
+        for (let p = item.parent; p; p = p.parent) {
+            // Detect Flickable-like ancestors (Flickable, ScrollView content)
+            // by their scrolling properties instead of type checks, which QML
+            // JS does not support for QML-defined types.
+            if (p.contentY === undefined || p.height === undefined)
+                continue
+            const pos = p.contentItem.mapFromItem(item, 0, 0)
+            const viewTop = p.contentY
+            const viewBottom = p.contentY + p.height
+            if (pos.y >= viewTop && pos.y + item.height <= viewBottom)
+                continue // already fully visible
+            const targetY = pos.y + item.height / 2 - p.height / 2
+            const max = Math.max(0, (p.contentHeight || 0) - p.height)
+            p.contentY = Math.max(0, Math.min(targetY, max))
+        }
     }
 
     function locateTarget() {
@@ -189,20 +228,26 @@ Rectangle {
             card.show()
             return
         }
+        scrollIntoView(item)
         const r = guide.mapFromItem(item, 0, 0, item.width, item.height)
         ring.x = r.x - 6
         ring.y = r.y - 6
         ring.width = r.width + 12
         ring.height = r.height + 12
         ring.visible = true
-        demoDot.start()
         card.positionFor(r)
         card.show()
     }
 
+    // Re-locates continuously while the tour is open. The first tick runs
+    // right after prepare(); the repeats keep the spotlight honest while the
+    // page-enter transition settles, list content streams in, the window is
+    // resized or the card changes height between steps.
     Timer {
         id: locateTimer
         interval: 170
+        repeat: true
+        running: guide.visible
         onTriggered: guide.locateTarget()
     }
 
@@ -267,28 +312,27 @@ Rectangle {
         }
 
         // small demo dot that bounces on the left edge — "look here"
+        // Bound to ring visibility so re-locates never restart its loop.
         Rectangle {
             id: demoDot
-            function start() { demoAnim.restart() }
-            function stop() { demoAnim.stop(); demoDot.opacity = 0 }
             width: 10
             height: 10
             radius: 5
             color: Theme.accent
-            opacity: 0
-            x: -18
-            y: parent.height / 2 - 5
+            opacity: ring.visible ? 0.95 : 0
 
-            SequentialAnimation {
-                id: demoAnim
+            Behavior on opacity { NumberAnimation { duration: 120 } }
+
+            SequentialAnimation on x {
                 loops: Animation.Infinite
-                running: false
-                PropertyAction { target: demoDot; property: "opacity"; value: 0.95 }
-                NumberAnimation { target: demoDot; property: "x"; from: -20; to: 2; duration: 420; easing.type: Easing.OutCubic }
+                running: ring.visible
+                alwaysRunToEnd: false
+                NumberAnimation { from: -20; to: 2; duration: 420; easing.type: Easing.OutCubic }
                 PauseAnimation { duration: 240 }
-                NumberAnimation { target: demoDot; property: "x"; from: 2; to: -20; duration: 420; easing.type: Easing.InCubic }
+                NumberAnimation { from: 2; to: -20; duration: 420; easing.type: Easing.InCubic }
                 PauseAnimation { duration: 160 }
             }
+            y: parent.height / 2 - 5
         }
 
         Behavior on x { NumberAnimation { duration: 240; easing.type: Theme.easing } }
@@ -302,17 +346,34 @@ Rectangle {
         id: card
 
         function positionFor(targetRect) {
-            const belowY = targetRect.y + targetRect.height + 16
-            const aboveY = targetRect.y - card.height - 16
-            if (aboveY > 64 && belowY + card.height > guide.height - 24)
-                card.y = aboveY
-            else if (belowY + card.height < guide.height - 24)
-                card.y = belowY
-            else
-                card.y = aboveY
-            let x = targetRect.x + targetRect.width / 2 - card.width / 2
-            x = Math.max(16, Math.min(x, guide.width - card.width - 16))
-            card.x = x
+            // Prefer below the target, then above. Tall targets (e.g. the
+            // full-height sidebar) fit neither — place the card beside them,
+            // vertically centred. The final clamps guarantee the card is
+            // always fully on screen (1.0.3-2: the sidebar step previously
+            // fell through to a negative y and vanished off the top).
+            const gap = 16
+            const ch = card.height
+            const cw = card.width
+            const fitsBelow = targetRect.y + targetRect.height + gap + ch
+                              <= guide.height - 24
+            const fitsAbove = targetRect.y - gap - ch >= 24
+            if (fitsBelow) {
+                card.y = targetRect.y + targetRect.height + gap
+            } else if (fitsAbove) {
+                card.y = targetRect.y - gap - ch
+            } else if (targetRect.height > guide.height * 0.6
+                       && targetRect.x + targetRect.width + gap + cw
+                              <= guide.width - 16) {
+                card.y = Math.max(16, (guide.height - ch) / 2)
+                card.x = Math.min(targetRect.x + targetRect.width + gap,
+                                  guide.width - cw - 16)
+                return
+            } else {
+                card.y = guide.height - ch - 16
+            }
+            card.y = Math.max(16, Math.min(card.y, guide.height - ch - 16))
+            let x = targetRect.x + targetRect.width / 2 - cw / 2
+            card.x = Math.max(16, Math.min(x, guide.width - cw - 16))
         }
 
         function positionCentered() {

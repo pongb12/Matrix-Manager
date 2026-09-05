@@ -15,7 +15,7 @@ Interface language: **Vietnamese by default**, English included.
 |------|---------|
 | **Overview** | Real disk usage, cleanup candidate sizes, installed package totals and session activity. Only cheap data is read automatically; everything expensive is loaded on demand. |
 | **Storage** | Mounted volumes (capacity, used, free, filesystem, mount point) and an on-demand directory usage explorer with incremental results, cancellation and honest error reporting. Includes a Home folder breakdown with an explicit "Other" remainder, a **filesystem search** (name / extension / size range, MM-031) and a **treemap** view (MM-023) colour-coded by file category with a legend; the table remains the accessible alternative. |
-| **Applications** | Installed .deb packages via `dpkg-query`: search, sort by size/name/version, details view, and safe uninstall through the system package manager. |
+| **Applications** | Installed .deb packages via `dpkg-query`, grouped into categories derived from package sections (chips + section headers): search, sort by size/name/version, details view, and safe uninstall through the system package manager. |
 | **Cleanup** | Three explicit, rule-based candidates: user trash, APT package cache and thumbnail cache. Each rule explains what it is, what it costs and what will happen. Nothing runs without a review step. |
 | **Large Files** | Find files above a threshold — presets (100 MB / 500 MB / 1 GB / 5 GB) **or any custom size** you type. Open, show in folder, or move to trash after explicit confirmation. |
 | **Duplicates** | Content-based duplicate detection (MM-032): files are compared by size first and hashed only when needed. Duplicate groups are shown with every member; you pick what goes to the trash and review the list before anything happens. |
@@ -80,7 +80,7 @@ runtime QML modules at launch time — these are separate packages from the
 ```bash
 sudo apt update
 sudo apt install build-essential cmake \
-    qt6-base-dev qt6-declarative-dev qt6-base-dev-tools \
+    qt6-base-dev qt6-declarative-dev qt6-svg-dev qt6-base-dev-tools \
     libgl1-mesa-dev libxkbcommon-dev \
     qml6-module-qtquick \
     qml6-module-qtquick-controls \
@@ -98,11 +98,21 @@ What each Qt package is for:
 |---|---|
 | `qt6-base-dev` | Qt Core / Gui development files (build) |
 | `qt6-declarative-dev` | Qt Qml / Quick / QuickControls2 development files (build) |
+| `qt6-svg-dev` | Qt SVG development files — the app links Qt6::Svg so the SVG icon set can be decoded (build) |
 | `libxkbcommon-dev` | Keyboard input support for Qt Gui (build) |
 | `qml6-module-qtquick*` | Runtime QML modules: QtQuick, Controls (Basic style), Templates, Layouts (run) |
 | `qml6-module-qtquick-dialogs` | Runtime QML module for the folder picker used by the Browse buttons (run, Qt 6.3+) |
 | `qml6-module-qt-labs-platform` | Native folder-picker fallback used on Qt 6.2 (run) |
 | `qml6-module-qtqml-workerscript` | Runtime helper module required by QtQuick (run) |
+| `libqt6svg6` | SVG image-format plugin that decodes the bundled UI icons (run) |
+
+> **Icons invisible after installing?** The UI icon set consists of SVG
+> files decoded by Qt's SVG image-format plugin. That plugin lives in the
+> `libqt6svg6` runtime package and is dlopened (not linked), so it is easy
+> to miss when running from source. The generated .deb depends on it
+> automatically; when launching a manually built binary, install
+> `libqt6svg6` yourself. Since 1.0.3-2 the application also prints a
+> one-line warning at startup if the plugin is missing.
 
 If a build already failed because of a missing Qt component, delete the
 stale build directory before reconfiguring:
@@ -133,7 +143,8 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Five suites run: size formatting, dpkg-query parsing, cleanup rules,
+Five suites run: size formatting, dpkg-query parsing, the package list
+model (category classification/filtering), cleanup rules,
 duplicate detection, filesystem search and process-output capture. The
 filesystem suites create their data inside `QTemporaryDir` and never touch
 your real home directory.

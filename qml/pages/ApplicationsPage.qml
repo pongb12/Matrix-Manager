@@ -18,6 +18,41 @@ Page {
     background: null
 
     property var selectedPackage: null
+    // Category browsing (1.0.3-2): "all" or one of the category ids the
+    // model derives from dpkg sections (see PackageModel::categoryIdForSection).
+    property string selectedCategory: "all"
+    readonly property bool searchActive: searchField.text !== ""
+
+    // Feeds the chip row: the "all" entry first, then every category present
+    // in the data (id, count, bytes). Re-evaluated whenever the model resets.
+    readonly property var categories: {
+        const all = {
+            id: "all",
+            count: PackageService.model.totalCount,
+            bytes: PackageService.model.totalInstalledBytes
+        }
+        return [all].concat(PackageService.model.categorySummary())
+    }
+
+    onSelectedCategoryChanged:
+        PackageService.model.setCategory(selectedCategory)
+
+    function categoryLabel(id) {
+        switch (id) {
+        case "accessories": return qsTr("Accessories")
+        case "internet":    return qsTr("Internet")
+        case "development": return qsTr("Development")
+        case "graphics":    return qsTr("Graphics")
+        case "multimedia":  return qsTr("Multimedia")
+        case "games":       return qsTr("Games")
+        case "science":     return qsTr("Science & education")
+        case "system":      return qsTr("System")
+        case "libraries":   return qsTr("Libraries")
+        case "fonts":       return qsTr("Fonts")
+        case "desktop":     return qsTr("Desktop")
+        default:            return qsTr("Other")
+        }
+    }
 
     Component.onCompleted: {
         if (PackageService.model.totalCount === 0 && !PackageService.loading)
@@ -45,6 +80,7 @@ Page {
             subtitle: qsTr("Installed .deb packages on this system")
 
             MSearchField {
+                id: searchField
                 visible: PackageService.model.totalCount > 0
                 placeholderText: qsTr("Search packages")
                 onTextChanged: PackageService.model.setFilter(text)
@@ -55,6 +91,75 @@ Page {
                 tooltip: qsTr("Refresh list")
                 enabled: !PackageService.loading && !PackageService.busy
                 onClicked: PackageService.refresh()
+            }
+        }
+
+        // ------------------------------------------- category chips
+        Flow {
+            Layout.fillWidth: true
+            spacing: Theme.spacingSM
+            visible: PackageService.model.totalCount > 0
+                     && !PackageService.loading
+                     && PackageService.lastError === ""
+
+            Repeater {
+                model: page.categories
+
+                delegate: AbstractButton {
+                    id: chip
+                    required property var modelData
+                    readonly property bool active:
+                        page.selectedCategory === modelData.id
+
+                    hoverEnabled: true
+                    leftPadding: 12
+                    rightPadding: 12
+                    topPadding: 5
+                    bottomPadding: 5
+
+                    contentItem: Row {
+                        spacing: 6
+
+                        Text {
+                            text: chip.modelData.id === "all"
+                                  ? qsTr("All")
+                                  : page.categoryLabel(chip.modelData.id)
+                            font.pixelSize: Theme.fontSizeSM
+                            font.weight: chip.active ? Font.DemiBold : Font.Normal
+                            color: chip.active ? Theme.onAccent : Theme.textSecondary
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Rectangle {
+                            width: chipCountText.implicitWidth + 10
+                            height: 16
+                            radius: 8
+                            color: chip.active ? Theme.accentPressed
+                                               : Theme.surfaceSunken
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Text {
+                                id: chipCountText
+                                anchors.centerIn: parent
+                                text: SystemInfo.formatCount(chip.modelData.count)
+                                font.pixelSize: Theme.fontSizeXS
+                                color: chip.active ? Theme.onAccent : Theme.textMuted
+                            }
+                        }
+                    }
+
+                    background: Rectangle {
+                        radius: height / 2
+                        color: chip.active ? Theme.accent
+                             : chip.hovered ? Theme.surfaceElevated
+                             : Theme.surface
+                        border.width: Theme.borderWidth
+                        border.color: chip.active ? Theme.accent : Theme.border
+
+                        Behavior on color { ColorAnimation { duration: Theme.durationFast } }
+                    }
+
+                    onClicked: page.selectedCategory = chip.modelData.id
+                }
             }
         }
 
@@ -121,6 +226,59 @@ Page {
                         id: packageList
                         model: PackageService.model
                         clip: true
+
+                        // Category sections (1.0.3-2). The model sorts by
+                        // category rank first, so equal ids are contiguous.
+                        // While a search is active the list degrades to flat
+                        // results — group counts would not match the shown
+                        // subset.
+                        section.property: "categoryId"
+                        section.criteria: ViewSection.FullString
+                        section.delegate: Item {
+                            required property string section
+
+                            readonly property var info: {
+                                const list = page.categories
+                                for (let i = 0; i < list.length; ++i) {
+                                    if (list[i].id === section)
+                                        return list[i]
+                                }
+                                return { count: 0, bytes: 0 }
+                            }
+
+                            width: packageList.width
+                            height: page.searchActive ? 0 : 32
+                            visible: !page.searchActive
+
+                            Rectangle {
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.top: parent.top
+                                height: 1
+                                color: Theme.border
+                            }
+                            Text {
+                                anchors.left: parent.left
+                                anchors.leftMargin: Theme.spacingSM
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: page.categoryLabel(parent.section)
+                                font.pixelSize: Theme.fontSizeSM
+                                font.weight: Font.DemiBold
+                                font.capitalization: Font.AllUppercase
+                                color: Theme.textMuted
+                            }
+                            Text {
+                                anchors.right: parent.right
+                                anchors.rightMargin: Theme.spacingSM
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: SystemInfo.formatCount(info.count)
+                                      + "  ·  "
+                                      + SystemInfo.formatBytes(info.bytes)
+                                font.pixelSize: Theme.fontSizeXS
+                                font.family: Theme.monoFamily
+                                color: Theme.textMuted
+                            }
+                        }
 
                         delegate: MListItem {
                             width: packageList.width
